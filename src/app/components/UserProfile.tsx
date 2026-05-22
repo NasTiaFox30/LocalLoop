@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -12,21 +13,21 @@ import {
 } from "lucide-react";
 
 interface UserProfileProps {
-  onNavigate: (screen: string) => void;
 }
 
 export default function UserProfile({
   onNavigate,
 }: UserProfileProps) {
+  const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(true);
   const [notificationMode, setNotificationMode] = useState<'all' | 'important' | 'disabled'>('all');
 
   const settingsItems = [
-    { icon: Edit, label: "Edytuj profil", onClick: () => onNavigate('edit-profile') },
+    { icon: Edit, label: "Edytuj profil", onClick: () => navigate('/edit-profile') },
     {
       icon: Package,
       label: "Moje ogłoszenia",
-      onClick: () => onNavigate('my-listings'),
+      onClick: () => navigate('/my-listings'),
     },
     {
       icon: HelpCircle,
@@ -36,7 +37,7 @@ export default function UserProfile({
   ];
 
   return (
-    <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4">
+    <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
       <div className="max-w-md mx-auto">
         <header className="flex items-center gap-3 mb-8 pt-4">
           <button
@@ -55,7 +56,7 @@ export default function UserProfile({
                 JK
               </span>
             </div>
-            <button onClick={() => onNavigate('edit-profile')} className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] flex items-center justify-center shadow-lg border-2 border-[#2a2d35] hover:scale-110 transition-transform duration-300">
+            <button onClick={() => navigate('/edit-profile')} className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] flex items-center justify-center shadow-lg border-2 border-[#2a2d35] hover:scale-110 transition-transform duration-300">
               <Edit className="w-4 h-4 text-[#1e2026]" />
             </button>
           </div>

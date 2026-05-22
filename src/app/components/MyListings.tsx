@@ -1,11 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Clock } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 
 interface MyListingsProps {
-  onNavigate: (screen: string) => void;
 }
 
-export default function MyListings({ onNavigate }: MyListingsProps) {
+export default function MyListings({}: MyListingsProps) {
+  const navigate = useNavigate();
   const activeListings = [
     {
       title: 'Wiertarka udarowa Bosch',
@@ -33,11 +34,11 @@ export default function MyListings({ onNavigate }: MyListingsProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4">
+    <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
       <div className="max-w-md mx-auto">
         <header className="flex items-center gap-3 mb-6 pt-4">
           <button
-            onClick={() => onNavigate('profile')}
+            onClick={() => navigate('/profile')}
             className="w-11 h-11 rounded-2xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40 transition-all duration-300"
           >
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />

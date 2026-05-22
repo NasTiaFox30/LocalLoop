@@ -1,10 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus } from 'lucide-react';
 
 interface RequestFavorProps {
-  onNavigate: (screen: string) => void;
 }
 
-export default function RequestFavor({ onNavigate }: RequestFavorProps) {
+export default function RequestFavor({}: RequestFavorProps) {
+  const navigate = useNavigate();
   const categories = [
     { icon: Wrench, label: 'Naprawa', color: 'from-[#7dd3c0] to-[#a8d5ba]' },
     { icon: Car, label: 'Transport', color: 'from-[#89cff0] to-[#7dd3c0]' },
@@ -25,7 +26,7 @@ export default function RequestFavor({ onNavigate }: RequestFavorProps) {
       <div className="max-w-md mx-auto">
         <header className="flex items-center gap-3 mb-6 pt-4">
           <button
-            onClick={() => onNavigate('dashboard')}
+            onClick={() => navigate('/dashboard')}
             className="w-11 h-11 rounded-2xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40 transition-all duration-300"
           >
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
@@ -72,7 +73,7 @@ export default function RequestFavor({ onNavigate }: RequestFavorProps) {
             {recentRequests.map((item, idx) => (
               <button
                 key={idx}
-                onClick={() => onNavigate('listing-detail')}
+                onClick={() => navigate('/listing-detail')}
                 className="w-full backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-2xl p-4 hover:border-[#7dd3c0]/25 transition-all duration-300 group"
               >
                 <div className="flex items-start gap-3">
@@ -93,7 +94,7 @@ export default function RequestFavor({ onNavigate }: RequestFavorProps) {
         </div>
 
         <button
-          onClick={() => onNavigate('request-help')}
+          onClick={() => navigate('/request-help')}
           className="w-full backdrop-blur-md bg-gradient-to-br from-[rgba(125,211,192,0.15)] to-[rgba(137,207,240,0.1)] border-2 border-dashed border-[#7dd3c0]/40 rounded-[1.5rem] p-6 hover:border-[#7dd3c0]/60 hover:shadow-xl hover:shadow-[#7dd3c0]/20 transition-all duration-300 group"
         >
           <div className="flex items-center justify-center gap-3">

@@ -1,11 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Repeat, Star, MessageSquare } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 
 interface ListingDetailProps {
-  onNavigate: (screen: string) => void;
 }
 
-export default function ListingDetail({ onNavigate }: ListingDetailProps) {
+export default function ListingDetail({}: ListingDetailProps) {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex flex-col">
       <div className="max-w-md mx-auto w-full flex flex-col min-h-screen">
@@ -16,7 +17,7 @@ export default function ListingDetail({ onNavigate }: ListingDetailProps) {
             className="w-full aspect-[4/3] object-cover"
           />
           <button
-            onClick={() => onNavigate('request')}
+            onClick={() => navigate('/request')}
             className="absolute top-4 left-4 w-11 h-11 rounded-2xl backdrop-blur-md bg-[rgba(42,45,53,0.8)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40 transition-all duration-300"
           >
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
@@ -83,7 +84,7 @@ export default function ListingDetail({ onNavigate }: ListingDetailProps) {
         <div className="fixed bottom-0 left-0 right-0 p-4 backdrop-blur-md bg-gradient-to-t from-[rgba(42,45,53,0.95)] to-[rgba(42,45,53,0.8)] border-t border-[#7dd3c0]/15">
           <div className="max-w-md mx-auto">
             <button
-              onClick={() => onNavigate('chat')}
+              onClick={() => navigate('/chat')}
               className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center justify-center gap-2"
             >
               <MessageSquare className="w-5 h-5" />

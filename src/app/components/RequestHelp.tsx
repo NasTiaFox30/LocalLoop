@@ -1,12 +1,13 @@
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { ArrowLeft, ImagePlus, Sparkles, Check, Repeat, Star } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 
 interface RequestHelpProps {
-  onNavigate: (screen: string) => void;
 }
 
-export default function RequestHelp({ onNavigate }: RequestHelpProps) {
+export default function RequestHelp({}: RequestHelpProps) {
+  const navigate = useNavigate();
   const [imageUploaded, setImageUploaded] = useState(false);
   const [requestText, setRequestText] = useState('');
 
@@ -15,11 +16,11 @@ export default function RequestHelp({ onNavigate }: RequestHelpProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4">
+    <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
       <div className="max-w-md mx-auto">
         <header className="flex items-center gap-3 mb-6 pt-4">
           <button
-            onClick={() => onNavigate('request')}
+            onClick={() => navigate('/request')}
             className="w-11 h-11 rounded-2xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40 transition-all duration-300"
           >
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
@@ -109,7 +110,7 @@ export default function RequestHelp({ onNavigate }: RequestHelpProps) {
           </div>
 
           <button
-            onClick={() => onNavigate('dashboard')}
+            onClick={() => navigate('/dashboard')}
             className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center justify-center gap-2"
           >
             <Check className="w-5 h-5" />

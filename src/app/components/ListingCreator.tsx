@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useState } from "react";
 import {
   Camera,
@@ -10,12 +11,12 @@ import {
 import { ImageWithFallback } from "./ImageWithFallback";
 
 interface ListingCreatorProps {
-  onNavigate: (screen: string) => void;
 }
 
 export default function ListingCreator({
   onNavigate,
 }: ListingCreatorProps) {
+  const navigate = useNavigate();
   const [imageUploaded, setImageUploaded] = useState(false);
 
   const handleImageClick = () => {
@@ -26,7 +27,7 @@ export default function ListingCreator({
     "Cześć! To moja wiertarka udarowa Bosch Professional, gotowa na Twoje projekty domowe. Jest w świetnym stanie, z baterią i ładowarką. Idealnie sprawdzi się do montażu mebli czy drobnych napraw. Chętnie podzielę się nią z sąsiadami! 🌱";
 
   return (
-    <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4">
+    <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
       <div className="max-w-md mx-auto">
         <header className="flex items-center gap-3 mb-6 pt-4">
           <button

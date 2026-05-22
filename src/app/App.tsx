@@ -1,34 +1,199 @@
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+
+// Layouts
+import DesktopSidebar from './components/DesktopSidebar';
+import MobileBottomNav from './components/MobileBottomNav';
+
+// Pages / screens
 import Onboarding from './components/Onboarding';
 import Auth from './components/Auth';
+import DesktopDashboard from './components/DesktopDashboard';
 import Dashboard from './components/Dashboard';
+import DesktopRequestFavor from './components/DesktopRequestFavor';
 import RequestFavor from './components/RequestFavor';
+import DesktopRequestHelp from './components/DesktopRequestHelp';
 import RequestHelp from './components/RequestHelp';
+import DesktopListingCreator from './components/DesktopListingCreator';
 import ListingCreator from './components/ListingCreator';
-import ListingDetail from './components/ListingDetail';
-import SmartChat from './components/SmartChat';
+import DesktopMessages from './components/DesktopMessages';
 import MessagesInbox from './components/MessagesInbox';
+import DesktopUserProfile from './components/DesktopUserProfile';
 import UserProfile from './components/UserProfile';
+import DesktopMyListings from './components/DesktopMyListings';
 import MyListings from './components/MyListings';
+import DesktopEditProfile from './components/DesktopEditProfile';
 import EditProfile from './components/EditProfile';
+import ListingDetail from './components/ListingDetail';
+import DetailDrawer from './components/DetailDrawer';
+
+// Routes that show the main app chrome (sidebar + bottom nav)
+const APP_ROUTES = [
+  '/dashboard',
+  '/request',
+  '/request-help',
+  '/listing',
+  '/messages',
+  '/profile',
+  '/my-listings',
+  '/edit-profile',
+  '/listing-detail',
+];
+
+/** Adaptive page wrapper: desktop shows Desktop* variant, mobile shows mobile variant */
+function AdaptivePage({
+  mobile,
+  desktop,
+}: {
+  mobile: React.ReactNode;
+  desktop: React.ReactNode;
+}) {
+  return (
+    <>
+      <div className="block lg:hidden">{mobile}</div>
+      <div className="hidden lg:block">{desktop}</div>
+    </>
+  );
+}
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<string>('onboarding');
+  const location = useLocation();
+  const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  const isAuthScreen =
+    location.pathname === '/' ||
+    location.pathname === '/onboarding' ||
+    location.pathname === '/auth';
+
+  const isAppRoute = APP_ROUTES.some((r) => location.pathname.startsWith(r));
+
+  const handleOpenDetail = (item: any) => {
+    setSelectedItem(item);
+    setIsDetailDrawerOpen(true);
+  };
+
+  const handleCloseDetail = () => {
+    setIsDetailDrawerOpen(false);
+  };
 
   return (
-    <div className="size-full">
-      {currentScreen === 'onboarding' && <Onboarding onNavigate={setCurrentScreen} />}
-      {currentScreen === 'auth' && <Auth onNavigate={setCurrentScreen} />}
-      {currentScreen === 'dashboard' && <Dashboard onNavigate={setCurrentScreen} />}
-      {currentScreen === 'request' && <RequestFavor onNavigate={setCurrentScreen} />}
-      {currentScreen === 'request-help' && <RequestHelp onNavigate={setCurrentScreen} />}
-      {currentScreen === 'listing' && <ListingCreator onNavigate={setCurrentScreen} />}
-      {currentScreen === 'listing-detail' && <ListingDetail onNavigate={setCurrentScreen} />}
-      {currentScreen === 'chat' && <SmartChat onNavigate={setCurrentScreen} />}
-      {currentScreen === 'messages' && <MessagesInbox onNavigate={setCurrentScreen} />}
-      {currentScreen === 'profile' && <UserProfile onNavigate={setCurrentScreen} />}
-      {currentScreen === 'my-listings' && <MyListings onNavigate={setCurrentScreen} />}
-      {currentScreen === 'edit-profile' && <EditProfile onNavigate={setCurrentScreen} />}
+    <div className="size-full min-h-screen bg-[#2a2d35]">
+      {/* Desktop sidebar – only visible on app routes */}
+      {isAppRoute && <DesktopSidebar />}
+
+      {/* Main content area – offset from sidebar on desktop */}
+      <div className={isAppRoute ? 'lg:pl-72' : ''}>
+        <Routes>
+          {/* ── Public routes ── */}
+          <Route path="/" element={<Navigate to="/onboarding" replace />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/auth" element={<Auth />} />
+
+          {/* ── App routes ── */}
+          <Route
+            path="/dashboard"
+            element={
+              <AdaptivePage
+                mobile={<Dashboard onNavigate={() => {}} />}
+                desktop={<DesktopDashboard onOpenDetail={handleOpenDetail} />}
+              />
+            }
+          />
+          <Route
+            path="/request"
+            element={
+              <AdaptivePage
+                mobile={<RequestFavor onNavigate={() => {}} />}
+                desktop={<DesktopRequestFavor onOpenDetail={handleOpenDetail} />}
+              />
+            }
+          />
+          <Route
+            path="/request-help"
+            element={
+              <AdaptivePage
+                mobile={<RequestHelp onNavigate={() => {}} />}
+                desktop={<DesktopRequestHelp onNavigate={() => {}} />}
+              />
+            }
+          />
+          <Route
+            path="/listing"
+            element={
+              <AdaptivePage
+                mobile={<ListingCreator onNavigate={() => {}} />}
+                desktop={<DesktopListingCreator onNavigate={() => {}} />}
+              />
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <AdaptivePage
+                mobile={<MessagesInbox onNavigate={() => {}} />}
+                desktop={<DesktopMessages onNavigate={() => {}} />}
+              />
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <AdaptivePage
+                mobile={<UserProfile onNavigate={() => {}} />}
+                desktop={<DesktopUserProfile onNavigate={() => {}} />}
+              />
+            }
+          />
+          <Route
+            path="/my-listings"
+            element={
+              <AdaptivePage
+                mobile={<MyListings onNavigate={() => {}} />}
+                desktop={<DesktopMyListings onNavigate={() => {}} />}
+              />
+            }
+          />
+          <Route
+            path="/edit-profile"
+            element={
+              <AdaptivePage
+                mobile={<EditProfile onNavigate={() => {}} />}
+                desktop={<DesktopEditProfile onNavigate={() => {}} />}
+              />
+            }
+          />
+          <Route
+            path="/listing-detail"
+            element={
+              <AdaptivePage
+                mobile={<ListingDetail onNavigate={() => {}} />}
+                desktop={<DesktopDashboard onOpenDetail={handleOpenDetail} />}
+              />
+            }
+          />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/onboarding" replace />} />
+        </Routes>
+
+        {/* Mobile bottom nav – only on app routes, hidden on desktop */}
+        {isAppRoute && (
+          <div className="lg:hidden">
+            <MobileBottomNav />
+          </div>
+        )}
+      </div>
+
+      {/* Detail drawer (desktop) */}
+      <DetailDrawer
+        isOpen={isDetailDrawerOpen}
+        onClose={handleCloseDetail}
+        onChat={() => {
+          setIsDetailDrawerOpen(false);
+        }}
+        item={selectedItem}
+      />
     </div>
   );
 }
