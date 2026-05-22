@@ -2,9 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { favorCategories, favorRequests } from '../../data/appData';
 import { Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus, Filter } from 'lucide-react';
 
-interface DesktopRequestFavorProps {
-  onOpenDetail: (item: any) => void;
-}
+// Mapa nazw ikon do komponentów
+const iconMap: Record<string, React.ElementType> = {
+  Wrench, Car, BookOpen, Home, Heart, Utensils,
+};
 
 export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavorProps) {
   const navigate = useNavigate();
