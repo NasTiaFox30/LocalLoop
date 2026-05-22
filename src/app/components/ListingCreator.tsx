@@ -13,9 +13,7 @@ import { ImageWithFallback } from "./ImageWithFallback";
 interface ListingCreatorProps {
 }
 
-export default function ListingCreator({
-  onNavigate,
-}: ListingCreatorProps) {
+export default function ListingCreator({}: ListingCreatorProps) {
   const navigate = useNavigate();
   const [imageUploaded, setImageUploaded] = useState(false);
 
@@ -31,7 +29,7 @@ export default function ListingCreator({
       <div className="max-w-md mx-auto">
         <header className="flex items-center gap-3 mb-6 pt-4">
           <button
-            onClick={() => onNavigate("dashboard")}
+            onClick={() => navigate("dashboard")}
             className="w-11 h-11 rounded-2xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40 transition-all duration-300"
           >
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
@@ -147,7 +145,7 @@ export default function ListingCreator({
               </div>
 
               <button
-                onClick={() => onNavigate("dashboard")}
+                onClick={() => navigate("dashboard")}
                 className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 flex items-center justify-center gap-2 shadow-xl shadow-[#7dd3c0]/20"
               >
                 <Check className="w-5 h-5" />
