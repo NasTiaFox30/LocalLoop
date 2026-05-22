@@ -43,14 +43,18 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
             <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] rounded-3xl border border-[#7dd3c0]/15 p-5 shadow-xl mb-6">
               <h3 className="text-base font-medium text-[#f5f3ed] mb-4">Popularne Kategorie</h3>
               <div className="grid grid-cols-3 gap-3">
-                {categories.map((category, idx) => (
+                {categories.map((category) => {
+                  const IconComponent = iconMap[category.iconName];
+                  if (!IconComponent) return null;
+
+                  return (
                   <button
-                    key={idx}
+                    key={category.id}
                     className="relative overflow-hidden backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-xl p-4 hover:border-[#7dd3c0]/30 hover:scale-105 hover:shadow-lg hover:shadow-[#7dd3c0]/10 transition-all duration-300 group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md flex-shrink-0`}>
-                        <category.iconName className="w-6 h-6 text-[#1e2026]" />
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br from-[${category.gradientFrom}] to-[${category.gradientTo}] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md flex-shrink-0`}>
+                        <IconComponent className="w-6 h-6 text-[#1e2026]" />
                       </div>
                       <div className="text-left flex-1">
                         <p className="text-sm font-medium text-[#f5f3ed]">{category.label}</p>
@@ -58,7 +62,8 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
                       </div>
                     </div>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
