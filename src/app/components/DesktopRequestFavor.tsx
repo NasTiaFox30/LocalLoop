@@ -7,6 +7,10 @@ const iconMap: Record<string, React.ElementType> = {
   Wrench, Car, BookOpen, Home, Heart, Utensils,
 };
 
+interface DesktopRequestFavorProps {
+  onOpenDetail: (item: any) => void;
+}
+
 export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavorProps) {
   const navigate = useNavigate();
   const categories = favorCategories;
@@ -80,7 +84,7 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
                     className="w-full backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-xl p-4 hover:border-[#7dd3c0]/25 hover:scale-[1.02] transition-all duration-300 group"
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0 shadow-md group-hover:scale-110 transition-transform duration-300`}>
+                      <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${item.avatarColor} flex items-center justify-center flex-shrink-0 shadow-md group-hover:scale-110 transition-transform duration-300`}>
                         <span className="text-sm font-medium text-[#1e2026]">{item.initials}</span>
                       </div>
                       <div className="flex-1 text-left min-w-0">
