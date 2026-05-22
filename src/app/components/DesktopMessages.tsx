@@ -63,7 +63,7 @@ export default function DesktopMessages({}: DesktopMessagesProps) {
                 }`}
               >
                 <div className="relative">
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${conv.color} flex items-center justify-center shadow-md flex-shrink-0`}>
+                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${conv.avatarColor} flex items-center justify-center shadow-md flex-shrink-0`}>
                     <span className="text-sm font-medium text-[#1e2026]">{conv.initials}</span>
                   </div>
                   {conv.unread && (
@@ -86,7 +86,7 @@ export default function DesktopMessages({}: DesktopMessagesProps) {
         <div className="flex-1 flex flex-col">
           <div className="border-b border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(40,43,50,0.3)] p-6">
             <div className="flex items-center gap-3">
-              <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${conversations[selectedChat].color} flex items-center justify-center shadow-lg`}>
+              <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${conversations[selectedChat].avatarColor} flex items-center justify-center shadow-lg`}>
                 <span className="text-lg font-medium text-[#1e2026]">{conversations[selectedChat].initials}</span>
               </div>
               <div>
