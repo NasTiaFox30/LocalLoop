@@ -39,11 +39,11 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
         <div className="grid grid-cols-3 gap-4 mb-6">
           <button
             onClick={() => navigate('/request')}
-            className="relative overflow-hidden rounded-2xl p-5 h-40 backdrop-blur-md bg-gradient-to-br from-[#7dd3c0]/10 via-[#a8d5ba]/10 to-transparent border border-[#7dd3c0]/20 hover:border-[#7dd3c0]/40 hover:scale-[1.02] transition-all duration-500 group shadow-xl shadow-[#7dd3c0]/5"
+            className="relative overflow-hidden rounded-3xl p-6 h-48 backdrop-blur-md bg-gradient-to-br from-[#89cff0]/10 via-[#7dd3c0]/10 to-transparent border border-[#89cff0]/20 hover:border-[#89cff0]/40 hover:scale-[1.02] transition-all duration-500 group shadow-xl shadow-[#89cff0]/5"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#7dd3c0]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative z-10 flex flex-col h-full">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center mb-auto group-hover:scale-110 transition-transform duration-500 shadow-2xl shadow-[#7dd3c0]/30">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center mb-auto group-hover:scale-110 transition-transform duration-500 shadow-2xl shadow-[#7dd3c0]/30">
                 <Package className="w-7 h-7 text-[#1e2026]" />
               </div>
               <div>
