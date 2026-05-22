@@ -15,9 +15,7 @@ import {
 interface UserProfileProps {
 }
 
-export default function UserProfile({
-  onNavigate,
-}: UserProfileProps) {
+export default function UserProfile({}: UserProfileProps) {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(true);
   const [notificationMode, setNotificationMode] = useState<'all' | 'important' | 'disabled'>('all');
@@ -41,7 +39,7 @@ export default function UserProfile({
       <div className="max-w-md mx-auto">
         <header className="flex items-center gap-3 mb-8 pt-4">
           <button
-            onClick={() => onNavigate("dashboard")}
+            onClick={() => navigate("dashboard")}
             className="w-11 h-11 rounded-2xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40 transition-all duration-300"
           >
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
@@ -160,7 +158,7 @@ export default function UserProfile({
         </div>
 
         <button
-          onClick={() => onNavigate("onboarding")}
+          onClick={() => navigate("onboarding")}
           className="w-full backdrop-blur-md bg-gradient-to-br from-[rgba(232,141,141,0.1)] to-transparent border-2 border-[#e88d8d]/30 rounded-2xl p-4 hover:border-[#e88d8d]/50 hover:bg-[rgba(232,141,141,0.15)] transition-all duration-300 flex items-center justify-center gap-3 group"
         >
           <LogOut className="w-5 h-5 text-[#e88d8d]" />
