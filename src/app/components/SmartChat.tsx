@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { ArrowLeft, Send, Sparkles } from 'lucide-react';
 
