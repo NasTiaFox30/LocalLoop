@@ -130,6 +130,13 @@ export default function DesktopMessages() {
             )}
           </div>
         </div>
+
+        {/* Chat Area */}
+        <DesktopSmartChat
+          conversationId={selectedConversationId || undefined}
+          listingId={tempChatParams?.listingId}
+          ownerId={tempChatParams?.ownerId}
+        />
       </div>
     </div>
   );
