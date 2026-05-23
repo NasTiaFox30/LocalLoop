@@ -191,7 +191,7 @@ export default function App() {
       </div>
 
       {/* Detail drawer (desktop) */}
-      <DetailDrawer
+      <DesktopDetailDrawer
         isOpen={isDetailDrawerOpen}
         onClose={handleCloseDetail}
         onChat={() => {
