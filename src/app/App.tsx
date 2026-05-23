@@ -99,7 +99,7 @@ export default function App() {
             path="/dashboard"
             element={
               <AdaptivePage
-                mobile={<Dashboard onNavigate={() => {}} />}
+                mobile={<Dashboard />}
                 desktop={<DesktopDashboard onOpenDetail={handleOpenDetail} />}
               />
             }
@@ -108,7 +108,7 @@ export default function App() {
             path="/request-favor"
             element={
               <AdaptivePage
-                mobile={<RequestFavor onNavigate={() => {}} />}
+                mobile={<RequestFavor />}
                 desktop={<DesktopRequestFavor onOpenDetail={handleOpenDetail} />}
               />
             }
@@ -135,8 +135,8 @@ export default function App() {
             path="/messages"
             element={
               <AdaptivePage
-                mobile={<MessagesInbox onNavigate={() => {}} />}
-                desktop={<DesktopMessages onNavigate={() => {}} />}
+                mobile={<MessagesInbox />}
+                desktop={<DesktopMessages />}
               />
             }
           />
@@ -144,8 +144,8 @@ export default function App() {
             path="/profile"
             element={
               <AdaptivePage
-                mobile={<UserProfile onNavigate={() => {}} />}
-                desktop={<DesktopUserProfile onNavigate={() => {}} />}
+                mobile={<UserProfile />}
+                desktop={<DesktopUserProfile />}
               />
             }
           />
@@ -153,8 +153,8 @@ export default function App() {
             path="/my-listings"
             element={
               <AdaptivePage
-                mobile={<MyListings onNavigate={() => {}} />}
-                desktop={<DesktopMyListings onNavigate={() => {}} />}
+                mobile={<MyListings />}
+                desktop={<DesktopMyListings/>}
               />
             }
           />
@@ -162,8 +162,8 @@ export default function App() {
             path="/edit-profile"
             element={
               <AdaptivePage
-                mobile={<EditProfile onNavigate={() => {}} />}
-                desktop={<DesktopEditProfile onNavigate={() => {}} />}
+                mobile={<EditProfile />}
+                desktop={<DesktopEditProfile />}
               />
             }
           />
