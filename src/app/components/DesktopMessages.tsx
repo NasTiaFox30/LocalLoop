@@ -11,6 +11,7 @@ export default function DesktopMessages() {
   const { getUserConversations, deleteConversation } = useConversations();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [tempChatParams, setTempChatParams] = useState<{ listingId: string; ownerId: string } | null>(null);
+  const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
 
   const userConversations = getUserConversations(currentUser.id);
 
