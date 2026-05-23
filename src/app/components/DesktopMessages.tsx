@@ -47,6 +47,7 @@ export default function DesktopMessages() {
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
       <div className="h-screen flex">
+        {/* Sidebar */}
         <div className="w-96 border-r border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(40,43,50,0.3)] flex flex-col">
           <div className="p-6 border-b border-[#7dd3c0]/15">
             <h1 className="text-2xl font-medium text-[#f5f3ed] mb-4">Wiadomości</h1>
