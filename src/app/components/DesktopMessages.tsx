@@ -42,6 +42,7 @@ export default function DesktopMessages() {
   const handleSelectConversation = (convId: string) => {
     setSelectedConversationId(convId);
     setTempChatParams(null);
+    setMenuOpenFor(null);
     navigate('/messages', { replace: true, state: {} });
   };
 
