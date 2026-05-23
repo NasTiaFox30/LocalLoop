@@ -6,7 +6,9 @@ import { useConversations } from '../../contexts/ConversationsContext';
 
 export default function MessagesInbox() {
   const navigate = useNavigate();
-  const { getUserConversations } = useConversations();
+  const { getUserConversations, deleteConversation } = useConversations();
+  const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
+  
   const conversations = getUserConversations(currentUser.id);
   const unreadCount = conversations.filter(c => c.unreadFor.includes(currentUser.id)).length;
 
