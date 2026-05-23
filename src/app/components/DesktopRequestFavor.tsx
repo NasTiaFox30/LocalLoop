@@ -21,8 +21,8 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
       <div className="max-w-[1440px] mx-auto p-6">
         <header className="mb-6">
-          <h1 className="text-2xl font-medium text-[#f5f3ed] mb-2">Poproś o Przysługę</h1>
-          <p className="text-sm text-[#b8b5ad]">Znajdź pomoc w sąsiedztwie</p>
+          <h1 className="text-2xl font-medium text-[#f5f3ed] mb-2">Udostępnij przedmiot lub usługę</h1>
+          <p className="text-sm text-[#b8b5ad]">Znajdź to, czego potrzebujesz – sąsiedzi oferują pomoc</p>
         </header>
 
         <div className="flex gap-4 mb-6">
@@ -32,7 +32,7 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
             </div>
             <input
               type="text"
-              placeholder="Czego potrzebujesz?"
+              placeholder="Szukaj przedmiotu lub usługi..."
               className="w-full pl-12 pr-4 py-3 backdrop-blur-md bg-gradient-to-r from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/20 rounded-2xl text-sm text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-lg focus:shadow-[#7dd3c0]/10 transition-all duration-300"
             />
           </div>
@@ -46,7 +46,7 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
           <div className="col-span-3">
             {/* Kategorie */}
             <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] rounded-3xl border border-[#7dd3c0]/15 p-5 shadow-xl mb-6">
-              <h3 className="text-base font-medium text-[#f5f3ed] mb-4">Popularne Kategorie</h3>
+              <h3 className="text-base font-medium text-[#f5f3ed] mb-4">Popularne kategorie</h3>
               <div className="grid grid-cols-3 gap-3">
                 {categories.map((category) => {
                   const IconComponent = iconMap[category.iconName];
@@ -75,7 +75,7 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
             {/* Ostatnio dodane oferty */}
             <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] rounded-3xl border border-[#7dd3c0]/15 p-5 shadow-xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-medium text-[#f5f3ed]">Ostatnio Dodane</h3>
+                <h3 className="text-base font-medium text-[#f5f3ed]">Ostatnio dodane</h3>
                 <span className="text-xs text-[#b8b5ad]">{recentRequests.length} próśb</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -117,7 +117,7 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
                 </div>
                 <div>
                   <p className="text-sm font-medium text-[#f5f3ed] mb-1">Nie znalazłeś?</p>
-                  <p className="text-xs text-[#7dd3c0]">Dodaj własną prośbę</p>
+                  <p className="text-xs text-[#7dd3c0]">Dodaj własną ofertę</p>
                 </div>
               </div>
             </button>
