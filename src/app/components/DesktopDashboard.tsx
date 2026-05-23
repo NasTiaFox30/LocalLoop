@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Leaf, Activity, Heart, MessageCircle, Mail, TrendingUp, Users, Sparkles } from 'lucide-react';
-import { activityFeed, communityStats, currentUser } from '../../data/appData';
+import { currentUser, communityStats, getActivityFeed, getUserById, getListingById, getActionText, timeAgo } from '../../data/appData';
 import type { ActivityItem } from '../../data/appData';
 
 interface DesktopDashboardProps {
