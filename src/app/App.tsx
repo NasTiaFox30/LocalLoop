@@ -24,8 +24,10 @@ import DesktopMyListings from './components/DesktopMyListings';
 import MyListings from './components/MyListings';
 import DesktopEditProfile from './components/DesktopEditProfile';
 import EditProfile from './components/EditProfile';
-import ListingDetail from './components/ListingDetail';
+import DesktopDetailDrawer from './components/DesktopDetailDrawer';
 import DetailDrawer from './components/DetailDrawer';
+import SmartChat from './components/SmartChat';
+import DesktopCreateHelpRequest from './components/DesktopCreateHelpRequest';
 import { ConversationsProvider} from '../contexts/ConversationsContext';
 
 // Routes that show the main app chrome (sidebar + bottom nav)
