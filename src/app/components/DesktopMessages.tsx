@@ -1,9 +1,9 @@
-import { conversations } from '../../data/appData';
-import { useState } from 'react';
-import { Search, Send, Sparkles } from 'lucide-react';
-
-interface DesktopMessagesProps {
-}
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Search, ArrowLeft } from 'lucide-react';
+import { currentUser, getUserById, timeAgo } from '../../data/appData';
+import { useConversations } from '../../contexts/ConversationsContext';
+import DesktopSmartChat from './DesktopSmartChat';
 
 export default function DesktopMessages({}: DesktopMessagesProps) {
   const [selectedChat, setSelectedChat] = useState(0);
