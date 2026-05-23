@@ -116,20 +116,30 @@ export default function DesktopMessages() {
                     )}
                   </div>
 
-                  <div className="flex-1 text-left min-w-0">
-                    <div className="flex items-start justify-between mb-1">
-                      <h3 className={`font-medium text-sm ${isUnread ? 'text-[#7dd3c0]' : 'text-[#f5f3ed]'}`}>
-                        {otherUser.name}
-                      </h3>
-                      <span className="text-xs text-[#b8b5ad] flex-shrink-0 ml-2">
-                        {timeAgo(conv.lastMessageTime)}
-                      </span>
-                    </div>
-                    <p className={`text-sm ${isUnread ? 'text-[#f5f3ed]' : 'text-[#b8b5ad]'} truncate`}>
-                      {conv.lastMessage || 'Nowa rozmowa'}
-                    </p>
+                  {/* Menu z trzema kropkami */}
+                  <div className="absolute right-3 top-15 -translate-y-1/2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMenuOpenFor(menuOpenFor === conv.id ? null : conv.id);
+                      }}
+                      className="w-8 h-8 rounded-xl backdrop-blur-sm bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40 transition-all duration-300 opacity-0 group-hover:opacity-100"
+                    >
+                      <MoreVertical className="w-4 h-4 text-[#7dd3c0]" />
+                    </button>
                   </div>
-                </button>
+                  {menuOpenFor === conv.id && (
+                      <div className="absolute right-0 top-8 z-20 w-40 backdrop-blur-xl bg-[rgba(42,45,53,0.95)] border border-[#7dd3c0]/20 rounded-xl shadow-2xl overflow-hidden">
+                        <button
+                          onClick={(e) => handleDeleteConversation(conv.id, e)}
+                          className="w-full px-4 py-3 text-sm text-[#e88d8d] hover:bg-[rgba(232,141,141,0.1)] flex items-center gap-2 transition-all duration-200"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Usuń chat
+                        </button>
+                      </div>
+                    )}
+                </div>
               );
             })}
 
