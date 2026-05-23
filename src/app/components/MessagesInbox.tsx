@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search } from 'lucide-react';
-import { conversations } from '../../data/appData';
+import { currentUser, getUserById, getListingById, timeAgo } from '../../data/appData';
+import { useConversations } from '../../contexts/ConversationsContext';
 
 export default function MessagesInbox() {
   const navigate = useNavigate();
