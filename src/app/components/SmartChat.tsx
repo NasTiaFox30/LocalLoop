@@ -9,6 +9,40 @@ export default function SmartChat() {
   const location = useLocation();
   const { addConversation, addMessage, getMessagesForConversation, conversations } = useConversations();
   const [inputValue, setInputValue] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const conversationId = location.state?.conversationId;
+  const listingId = location.state?.listingId;
+  const ownerId = location.state?.ownerId;
+
+  // Отримуємо розмову напряму з контексту на основі пропсів
+  const conversation = conversationId 
+    ? conversations.find(c => c.id === conversationId)
+    : (listingId && ownerId 
+        ? conversations.find(c => c.listingId === listingId && c.participants.includes(ownerId))
+        : null);
+
+  // Якщо listingId немає в state (перехід з інбоксу), беремо його з самої розмови
+  const listing = listingId 
+    ? getListingById(listingId) 
+    : (conversation ? getListingById(conversation.listingId) : null);
+
+  const otherUser = conversation
+    ? getUserById(conversation.participants.find(p => p !== currentUser.id)!)
+    : (ownerId ? getUserById(ownerId) : null);
+
+  // Створюємо нову розмову лише тоді, коли її дійсно немає
+  useEffect(() => {
+    if (!conversation && listing && otherUser) {
+      addConversation(listing.id, otherUser.id);
+    }
+  }, [conversation, listing, otherUser, addConversation]);
+
+  const messages = conversation ? getMessagesForConversation(conversation.id) : [];
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const icebreakers = [
     "Hej, mogę w zamian przynieść domową kawę! ☕",
