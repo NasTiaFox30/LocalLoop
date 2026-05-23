@@ -6,11 +6,7 @@ import { useConversations } from '../../contexts/ConversationsContext';
 
 export default function SmartChat() {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([
-    { from: 'them', text: "Cześć! Widzę, że oferujesz wiertarkę. Czy jest nadal dostępna?" },
-    { from: 'me', text: "Tak, jest! Kiedy byś jej potrzebował/a?" },
-    { from: 'them', text: "W sobotę planuję montaż półek. Czy mogłabym pożyczyć ją na weekend?" },
-  ]);
+  const location = useLocation();
   const [inputValue, setInputValue] = useState('');
 
   const icebreakers = [
