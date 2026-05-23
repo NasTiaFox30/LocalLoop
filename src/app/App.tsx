@@ -117,8 +117,7 @@ export default function App() {
             path="/request-help"
             element={
               <AdaptivePage
-                mobile={<RequestHelp onNavigate={() => {}} />}
-                desktop={<DesktopRequestHelp onNavigate={() => {}} />}
+                mobile={<RequestHelp />}
               />
             }
           />
