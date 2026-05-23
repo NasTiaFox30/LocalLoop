@@ -26,6 +26,7 @@ import DesktopEditProfile from './components/DesktopEditProfile';
 import EditProfile from './components/EditProfile';
 import ListingDetail from './components/ListingDetail';
 import DetailDrawer from './components/DetailDrawer';
+import { ConversationsProvider} from '../contexts/ConversationsContext';
 
 // Routes that show the main app chrome (sidebar + bottom nav)
 const APP_ROUTES = [
