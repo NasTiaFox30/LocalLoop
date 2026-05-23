@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, ArrowLeft } from 'lucide-react';
+import { Search, ArrowLeft, MoreVertical, Trash2 } from 'lucide-react';
 import { currentUser, getUserById, timeAgo } from '../../data/appData';
 import { useConversations } from '../../contexts/ConversationsContext';
 import DesktopSmartChat from './DesktopSmartChat';
