@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { ArrowLeft, ImagePlus, Sparkles, Check, Repeat, Star } from 'lucide-react';
-import { ImageWithFallback } from './ImageWithFallback';
+import { ArrowLeft, Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus } from 'lucide-react';
+import { favorCategories, getRequests, getUserById, timeAgo } from '../../data/appData';
+import type { LucideIcon } from 'lucide-react';
 
-interface RequestHelpProps {
-}
+const iconMap: Record<string, LucideIcon> = {
+  Wrench, Car, BookOpen, Home, Heart, Utensils,
+};
 
 export default function RequestHelp({}: RequestHelpProps) {
   const navigate = useNavigate();
