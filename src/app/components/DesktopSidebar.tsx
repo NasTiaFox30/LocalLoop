@@ -3,8 +3,8 @@ import { Home, Package, Leaf, Mail, User, LogOut } from 'lucide-react';
 
 const navItems = [
   { icon: Home,    label: 'Home',             path: '/dashboard' },
-  { icon: Package, label: 'Prośby',           path: '/request' },
-  { icon: Leaf,    label: 'Udostępnij',       path: '/listing' },
+  { icon: Package, label: 'Prośby',           path: '/request-help' },
+  { icon: Leaf,    label: 'Pomóc innym',       path: '/request-favor' },
   { icon: Mail,    label: 'Wiadomości',       path: '/messages' },
   { icon: Package, label: 'Moje Ogłoszenia', path: '/my-listings' },
   { icon: User,    label: 'Profil',           path: '/profile' },
