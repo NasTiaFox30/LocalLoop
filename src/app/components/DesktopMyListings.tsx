@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Package, Clock, Eye, Users, Plus } from 'lucide-react';
+import { Clock, Eye, Users, Plus } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 
 interface DesktopMyListingsProps {
