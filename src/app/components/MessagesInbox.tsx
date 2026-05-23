@@ -18,7 +18,7 @@ export default function MessagesInbox() {
           </button>
           <div>
             <h1 className="font-medium text-[#f5f3ed]">Wiadomości</h1>
-            <p className="text-sm text-[#b8b5ad]">{conversations.filter(c => c.unread).length} nieprzeczytane</p>
+            <p className="text-sm text-[#b8b5ad]">{unreadCount} nieprzeczytane</p>
           </div>
         </header>
 
