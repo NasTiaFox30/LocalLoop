@@ -37,36 +37,46 @@ export default function MessagesInbox() {
         </div>
 
         <div className="space-y-3">
-          {conversations.map((conv) => (
-            <button
-              key={conv.id}
-              onClick={() => navigate('/messages/chat')}
-              className={`w-full backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border ${
-                conv.unread ? 'border-[#7dd3c0]/30' : 'border-[#7dd3c0]/10'
-              } rounded-2xl p-4 hover:border-[#7dd3c0]/40 transition-all duration-300 flex items-start gap-3`}
-            >
-              <div className="relative">
-                <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${conv.avatarColor} flex items-center justify-center shadow-lg flex-shrink-0`}>
-                  <span className="text-sm font-medium text-[#1e2026]">{conv.initials}</span>
-                </div>
-                {conv.unread && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] border-2 border-[#2a2d35] shadow-lg" />
-                )}
-              </div>
+          {conversations.map((conv) => {
+            const otherUserId = conv.participants.find(p => p !== currentUser.id)!;
+            const otherUser = getUserById(otherUserId)!;
+            const listing = getListingById(conv.listingId)!;
+            const isUnread = conv.unreadFor.includes(currentUser.id);
 
-              <div className="flex-1 text-left min-w-0">
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className={`font-medium ${conv.unread ? 'text-[#7dd3c0]' : 'text-[#f5f3ed]'}`}>
-                    {conv.name}
-                  </h3>
-                  <span className="text-xs text-[#b8b5ad] flex-shrink-0 ml-2">{conv.time}</span>
+            return (
+              <button
+                key={conv.id}
+                onClick={() => navigate('/messages/chat', { state: { conversationId: conv.id } })}
+                className={`w-full backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border ${
+                  isUnread ? 'border-[#7dd3c0]/30' : 'border-[#7dd3c0]/10'
+                } rounded-2xl p-4 hover:border-[#7dd3c0]/40 transition-all duration-300 flex items-start gap-3`}
+              >
+                <div className="relative">
+                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                    <span className="text-sm font-medium text-[#1e2026]">{otherUser.initials}</span>
+                  </div>
+                  {isUnread && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] border-2 border-[#2a2d35] shadow-lg" />
+                  )}
                 </div>
-                <p className={`text-sm ${conv.unread ? 'text-[#f5f3ed]' : 'text-[#b8b5ad]'} truncate`}>
-                  {conv.lastMessage}
-                </p>
-              </div>
-            </button>
-          ))}
+
+                <div className="flex-1 text-left min-w-0">
+                  <div className="flex items-start justify-between mb-1">
+                    <h3 className={`font-medium ${isUnread ? 'text-[#7dd3c0]' : 'text-[#f5f3ed]'}`}>
+                      {otherUser.name}
+                    </h3>
+                    <span className="text-xs text-[#b8b5ad] flex-shrink-0 ml-2">{timeAgo(conv.lastMessageTime)}</span>
+                  </div>
+                  <p className={`text-sm ${isUnread ? 'text-[#f5f3ed]' : 'text-[#b8b5ad]'} truncate`}>
+                    {conv.lastMessage}
+                  </p>
+                  <p className="text-xs text-[#b8b5ad] mt-1 truncate">
+                    Dot. {listing.title}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
