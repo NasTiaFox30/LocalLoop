@@ -8,7 +8,7 @@ import DesktopSmartChat from './DesktopSmartChat';
 export default function DesktopMessages() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { getUserConversations } = useConversations();
+  const { getUserConversations, deleteConversation } = useConversations();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [tempChatParams, setTempChatParams] = useState<{ listingId: string; ownerId: string } | null>(null);
 
