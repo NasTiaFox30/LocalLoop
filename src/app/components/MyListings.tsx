@@ -63,9 +63,9 @@ export default function MyListings() {
         <div>
           <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Zakończone</h3>
           <div className="space-y-4">
-            {pastListings.map((item, idx) => (
+            {pastListings.map((item) => (
               <div
-                key={idx}
+                key={item.id}
                 className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/10 rounded-2xl overflow-hidden shadow-xl opacity-75"
               >
                 <div className="flex gap-4">
