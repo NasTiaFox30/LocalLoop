@@ -1,22 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { Clock, Eye, Users, Plus } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
+import { currentUser, getActiveListingsByUser, getCompletedListingsByUser, getUserById } from '../../data/appData';
 
-interface DesktopMyListingsProps {
-}
-
-export default function DesktopMyListings({}: DesktopMyListingsProps) {
+export default function DesktopMyListings() {
   const navigate = useNavigate();
-  const activeListings = [
-    { title: 'Wiertarka udarowa Bosch', image: 'https://images.unsplash.com/photo-1770763233593-74dfd0da7bf0?w=400', status: 'Aktywne', views: 24, interested: 3 },
-    { title: 'Sekator ogrodowy', image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400', status: 'Aktywne', views: 12, interested: 1 },
-    { title: 'Kosiarka elektryczna', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400', status: 'Aktywne', views: 18, interested: 2 },
-  ];
-
-  const pastListings = [
-    { title: 'Drabina aluminiowa', image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400', status: 'Ukończone', completedWith: 'Piotr N.' },
-    { title: 'Młotek udarowy', image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400', status: 'Ukończone', completedWith: 'Anna K.' },
-  ];
+  const activeListings = getActiveListingsByUser(currentUser.id);
+  const completedListings = getCompletedListingsByUser(currentUser.id);
 
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
@@ -36,75 +26,96 @@ export default function DesktopMyListings({}: DesktopMyListingsProps) {
         </header>
 
         <div className="space-y-6">
-          <div>
-            <h3 className="text-base font-medium text-[#f5f3ed] mb-4">Aktywne</h3>
-            <div className="grid grid-cols-3 gap-4">
-              {activeListings.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl overflow-hidden shadow-xl hover:border-[#7dd3c0]/30 hover:scale-[1.02] transition-all duration-300 group"
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <ImageWithFallback
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute top-3 right-3">
-                      <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-xs font-medium text-[#1e2026] shadow-lg">
-                        {item.status}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h4 className="font-medium text-base text-[#f5f3ed] mb-3">{item.title}</h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex items-center gap-2 text-xs text-[#b8b5ad]">
-                        <Eye className="w-4 h-4" />
-                        <span>{item.views} wyświetleń</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-[#7dd3c0]">
-                        <Users className="w-4 h-4" />
-                        <span>{item.interested} zainteresowanych</span>
+          {activeListings.length > 0 && (
+            <div>
+              <h3 className="text-base font-medium text-[#f5f3ed] mb-4">Aktywne</h3>
+              <div className="grid grid-cols-3 gap-4">
+                {activeListings.map((item) => (
+                  <div
+                    key={item.id}
+                    className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl overflow-hidden shadow-xl hover:border-[#7dd3c0]/30 hover:scale-[1.02] transition-all duration-300 group cursor-pointer"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <ImageWithFallback
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute top-3 right-3">
+                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-xs font-medium text-[#1e2026] shadow-lg">
+                          Aktywne
+                        </span>
                       </div>
                     </div>
+                    <div className="p-4">
+                      <h4 className="font-medium text-base text-[#f5f3ed] mb-3">{item.title}</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center gap-2 text-xs text-[#b8b5ad]">
+                          <Eye className="w-4 h-4" />
+                          <span>{item.views} wyświetleń</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-[#7dd3c0]">
+                          <Users className="w-4 h-4" />
+                          <span>{item.interestedCount} zainteresowanych</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div>
-            <h3 className="text-base font-medium text-[#f5f3ed] mb-4">Zakończone</h3>
-            <div className="grid grid-cols-3 gap-4">
-              {pastListings.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/10 rounded-2xl overflow-hidden shadow-xl opacity-75"
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <ImageWithFallback
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover opacity-60"
-                    />
-                    <div className="absolute top-3 right-3">
-                      <span className="px-3 py-1 rounded-full bg-[rgba(60,65,75,0.8)] border border-[#b8b5ad]/20 text-xs font-medium text-[#b8b5ad]">
-                        {item.status}
-                      </span>
+          {completedListings.length > 0 && (
+            <div>
+              <h3 className="text-base font-medium text-[#f5f3ed] mb-4">Zakończone</h3>
+              <div className="grid grid-cols-3 gap-4">
+                {completedListings.map((item) => {
+                  const completedWithUser = item.completedWithUserId ? getUserById(item.completedWithUserId) : null;
+                  return (
+                    <div
+                      key={item.id}
+                      className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/10 rounded-2xl overflow-hidden shadow-xl opacity-75"
+                    >
+                      <div className="relative h-48 overflow-hidden">
+                        <ImageWithFallback
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover opacity-60"
+                        />
+                        <div className="absolute top-3 right-3">
+                          <span className="px-3 py-1 rounded-full bg-[rgba(60,65,75,0.8)] border border-[#b8b5ad]/20 text-xs font-medium text-[#b8b5ad]">
+                            Ukończone
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h4 className="font-medium text-base text-[#f5f3ed] mb-2">{item.title}</h4>
+                        {completedWithUser && (
+                          <div className="flex items-center gap-2 text-xs text-[#b8b5ad]">
+                            <Clock className="w-4 h-4" />
+                            <span>Wymieniono z: <span className="text-[#7dd3c0]">{completedWithUser.name}</span></span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-4">
-                    <h4 className="font-medium text-base text-[#f5f3ed] mb-2">{item.title}</h4>
-                    <div className="flex items-center gap-2 text-xs text-[#b8b5ad]">
-                      <Clock className="w-4 h-4" />
-                      <span>Wymieniono z: <span className="text-[#7dd3c0]">{item.completedWith}</span></span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
+
+          {activeListings.length === 0 && completedListings.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-[#b8b5ad]">Nie masz jeszcze żadnych ogłoszeń</p>
+              <button
+                onClick={() => navigate('/listing')}
+                className="mt-4 px-6 py-3 bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium rounded-2xl"
+              >
+                Dodaj pierwsze ogłoszenie
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
