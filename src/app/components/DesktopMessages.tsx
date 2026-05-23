@@ -50,7 +50,20 @@ export default function DesktopMessages() {
         {/* Sidebar */}
         <div className="w-96 border-r border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(40,43,50,0.3)] flex flex-col">
           <div className="p-6 border-b border-[#7dd3c0]/15">
-            <h1 className="text-2xl font-medium text-[#f5f3ed] mb-4">Wiadomości</h1>
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="lg:hidden w-10 h-10 rounded-xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40 transition-all duration-300"
+              >
+                <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-medium text-[#f5f3ed]">Wiadomości</h1>
+                <p className="text-sm text-[#b8b5ad]">
+                  {userConversations.filter(c => c.unreadFor.includes(currentUser.id)).length} nieprzeczytane
+                </p>
+              </div>
+            </div>
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
                 <Search className="w-5 h-5 text-[#7dd3c0]" />
