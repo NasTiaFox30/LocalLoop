@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
+import { myListings, pastListings } from '../../data/appData';
 
 interface MyListingsProps {
 }
