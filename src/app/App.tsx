@@ -168,6 +168,8 @@ export default function App() {
           />
           <Route
             path="/listing-detail"
+            element={<DetailDrawer />}
+          />
           <Route 
             path="/chat" 
             element={<SmartChat />}
