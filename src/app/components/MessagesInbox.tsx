@@ -5,7 +5,7 @@ import { useConversations } from '../../contexts/ConversationsContext';
 
 export default function MessagesInbox() {
   const navigate = useNavigate();
-  const unreadCount = conversations.filter(c => c.unread).length;
+  const { getUserConversations } = useConversations();
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
