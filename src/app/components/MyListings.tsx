@@ -26,9 +26,9 @@ export default function MyListings() {
         <div className="mb-6">
           <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Aktywne</h3>
           <div className="space-y-4">
-            {activeListings.map((item, idx) => (
+            {activeListings.map((item) => (
               <div
-                key={idx}
+                key={item.id}
                 className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl overflow-hidden shadow-xl hover:border-[#7dd3c0]/30 transition-all duration-300"
               >
                 <div className="flex gap-4">
