@@ -5,9 +5,12 @@ import { currentUser, getUserById, timeAgo } from '../../data/appData';
 import { useConversations } from '../../contexts/ConversationsContext';
 import DesktopSmartChat from './DesktopSmartChat';
 
-export default function DesktopMessages({}: DesktopMessagesProps) {
-  const [selectedChat, setSelectedChat] = useState(0);
-  const [inputValue, setInputValue] = useState('');
+export default function DesktopMessages() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { getUserConversations } = useConversations();
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [tempChatParams, setTempChatParams] = useState<{ listingId: string; ownerId: string } | null>(null);
 
   const allConversations = conversations;
 
