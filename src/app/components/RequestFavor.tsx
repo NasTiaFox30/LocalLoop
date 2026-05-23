@@ -38,6 +38,7 @@ export default function RequestFavor() {
           />
         </div>
 
+        {/* Categories */}
         <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] rounded-3xl border border-[#7dd3c0]/15 p-5 shadow-xl mb-6">
           <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Popularne Kategorie</h3>
           <div className="grid grid-cols-2 gap-3">
@@ -57,6 +58,7 @@ export default function RequestFavor() {
           </div>
         </div>
 
+        {/* Recent requests */}
         <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] rounded-3xl border border-[#7dd3c0]/15 p-5 shadow-xl mb-6">
           <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Ostatnio Dodane</h3>
           <div className="space-y-3">
