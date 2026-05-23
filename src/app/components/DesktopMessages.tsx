@@ -12,21 +12,7 @@ export default function DesktopMessages() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [tempChatParams, setTempChatParams] = useState<{ listingId: string; ownerId: string } | null>(null);
 
-  const allConversations = conversations;
-
-  const chatMessages = [
-    { from: 'them', text: 'Cześć! Widzę, że oferujesz wiertarkę. Czy jest nadal dostępna?' },
-    { from: 'me', text: 'Tak, jest! Kiedy byś jej potrzebował/a?' },
-    { from: 'them', text: 'W sobotę planuję montaż półek. Czy mogłabym pożyczyć ją na weekend?' },
-    { from: 'me', text: 'Oczywiście! Mogę przynieść ją w sobotę rano.' },
-    { from: 'them', text: 'Świetnie! Mogę odebrać wiertarkę w sobotę rano' },
-  ];
-
-  const icebreakers = [
-    'Hej, mogę w zamian przynieść domową kawę! ☕',
-    'Cześć! Kiedy pasuje Ci odbiór?',
-    'Chętnie pomogę w ogrodzie w zamian 🌱',
-  ];
+  const userConversations = getUserConversations(currentUser.id);
 
   const handleSendMessage = (text: string) => {
     if (text.trim()) {
