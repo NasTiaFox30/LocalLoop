@@ -4,48 +4,7 @@ import { conversations } from '../../data/appData';
 
 export default function MessagesInbox() {
   const navigate = useNavigate();
-  const conversations = [
-    {
-      initials: 'AK',
-      name: 'Anna Kowalska',
-      lastMessage: 'Świetnie! Mogę odebrać wiertarkę w sobotę rano',
-      time: '10 min',
-      unread: true,
-      color: 'from-[#7dd3c0] to-[#a8d5ba]',
-    },
-    {
-      initials: 'PN',
-      name: 'Piotr Nowak',
-      lastMessage: 'Dziękuję za pomoc! Naprawdę doceniam',
-      time: '2 godz.',
-      unread: false,
-      color: 'from-[#89cff0] to-[#7dd3c0]',
-    },
-    {
-      initials: 'EW',
-      name: 'Ewa Wiśniewska',
-      lastMessage: 'Drożdżówki są gotowe do odbioru 🥐',
-      time: '5 godz.',
-      unread: true,
-      color: 'from-[#a8d5ba] to-[#c2e7d9]',
-    },
-    {
-      initials: 'MZ',
-      name: 'Marek Zieliński',
-      lastMessage: 'Czy mogę pożyczyć sekator w przyszłym...',
-      time: '1 dzień',
-      unread: false,
-      color: 'from-[#b8d8e8] to-[#89cff0]',
-    },
-    {
-      initials: 'KS',
-      name: 'Kasia Szymańska',
-      lastMessage: 'Super, dzięki za ciasto!',
-      time: '2 dni',
-      unread: false,
-      color: 'from-[#7dd3c0] to-[#89cff0]',
-    },
-  ];
+  const unreadCount = conversations.filter(c => c.unread).length;
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
