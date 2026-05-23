@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search } from 'lucide-react';
+import { ArrowLeft, Search, MoreVertical, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { currentUser, getUserById, getListingById, timeAgo } from '../../data/appData';
 import { useConversations } from '../../contexts/ConversationsContext';
 
