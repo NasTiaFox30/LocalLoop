@@ -1,5 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus } from 'lucide-react';
+import { favorCategories, favorRequests } from '../../data/appData';
+import type { LucideIcon } from 'lucide-react';
+
 
 
 export default function RequestFavor() {
