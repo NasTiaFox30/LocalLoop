@@ -5,31 +5,7 @@ import { myListings, pastListings } from '../../data/appData';
 
 export default function MyListings() {
   const navigate = useNavigate();
-  const activeListings = [
-    {
-      title: 'Wiertarka udarowa Bosch',
-      image: 'https://images.unsplash.com/photo-1770763233593-74dfd0da7bf0?w=400',
-      status: 'Aktywne',
-      views: 24,
-      interested: 3,
-    },
-    {
-      title: 'Sekator ogrodowy',
-      image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400',
-      status: 'Aktywne',
-      views: 12,
-      interested: 1,
-    },
-  ];
-
-  const pastListings = [
-    {
-      title: 'Drabina aluminiowa',
-      image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400',
-      status: 'Ukończone',
-      completedWith: 'Piotr N.',
-    },
-  ];
+  const activeListings = myListings.filter(l => l.status === 'Aktywne');
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
