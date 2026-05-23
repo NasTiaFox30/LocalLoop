@@ -7,6 +7,7 @@ import { useConversations } from '../../contexts/ConversationsContext';
 export default function SmartChat() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { addConversation, addMessage, getMessagesForConversation, conversations } = useConversations();
   const [inputValue, setInputValue] = useState('');
 
   const icebreakers = [
