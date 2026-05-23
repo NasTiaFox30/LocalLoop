@@ -98,23 +98,38 @@ export default function DesktopMessages() {
               const isSelected = selectedConversationId === conv.id;
 
               return (
-                <button
-                  key={conv.id}
-                  onClick={() => handleSelectConversation(conv.id)}
-                  className={`w-full backdrop-blur-md border rounded-2xl p-4 transition-all duration-300 flex items-start gap-3 ${
-                    isSelected
-                      ? 'bg-gradient-to-r from-[rgba(125,211,192,0.2)] to-[rgba(168,213,186,0.1)] border-[#7dd3c0]/30 shadow-lg'
-                      : 'bg-[rgba(60,65,75,0.3)] border-[#7dd3c0]/10 hover:border-[#7dd3c0]/25 hover:scale-[1.02]'
-                  }`}
-                >
-                  <div className="relative">
-                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center shadow-md flex-shrink-0`}>
-                      <span className="text-sm font-medium text-[#1e2026]">{otherUser.initials}</span>
+                <div key={conv.id} className="relative group">
+                  <button
+                    onClick={() => handleSelectConversation(conv.id)}
+                    className={`w-full backdrop-blur-md border rounded-2xl p-4 transition-all duration-300 flex items-start gap-3 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-[rgba(125,211,192,0.2)] to-[rgba(168,213,186,0.1)] border-[#7dd3c0]/30 shadow-lg'
+                        : 'bg-[rgba(60,65,75,0.3)] border-[#7dd3c0]/10 hover:border-[#7dd3c0]/25 hover:scale-[1.02]'
+                    }`}
+                  >
+                    <div className="relative">
+                      <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center shadow-md flex-shrink-0`}>
+                        <span className="text-sm font-medium text-[#1e2026]">{otherUser.initials}</span>
+                      </div>
+                      {isUnread && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] border-2 border-[#2a2d35] shadow-lg" />
+                      )}
                     </div>
-                    {isUnread && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] border-2 border-[#2a2d35] shadow-lg" />
-                    )}
-                  </div>
+
+                    <div className="flex-1 text-left min-w-0">
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className={`font-medium text-sm ${isUnread ? 'text-[#7dd3c0]' : 'text-[#f5f3ed]'}`}>
+                          {otherUser.name}
+                        </h3>
+                        <span className="text-xs text-[#b8b5ad] flex-shrink-0 ml-2">
+                          {timeAgo(conv.lastMessageTime)}
+                        </span>
+                      </div>
+                      <p className={`text-sm ${isUnread ? 'text-[#f5f3ed]' : 'text-[#b8b5ad]'} truncate`}>
+                        {conv.lastMessage || 'Nowa rozmowa'}
+                      </p>
+                    </div>
+                  </button>
 
                   {/* Menu z trzema kropkami */}
                   <div className="absolute right-3 top-15 -translate-y-1/2">
