@@ -44,6 +44,7 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
 
         <div className="grid grid-cols-4 gap-6 mb-6">
           <div className="col-span-3">
+            {/* Kategorie */}
             <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] rounded-3xl border border-[#7dd3c0]/15 p-5 shadow-xl mb-6">
               <h3 className="text-base font-medium text-[#f5f3ed] mb-4">Popularne Kategorie</h3>
               <div className="grid grid-cols-3 gap-3">
@@ -71,6 +72,7 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
               </div>
             </div>
 
+            {/* Ostatnio dodane oferty */}
             <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] rounded-3xl border border-[#7dd3c0]/15 p-5 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-medium text-[#f5f3ed]">Ostatnio Dodane</h3>
@@ -103,6 +105,7 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
             </div>
           </div>
 
+          {/* Sidebar z przyciskiem do dodania własnej oferty */}
           <div className="col-span-1">
             <button
               onClick={() => navigate('/request-help')}
