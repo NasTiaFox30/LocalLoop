@@ -92,7 +92,7 @@ export default function RequestFavor() {
         </div>
 
         <button
-          onClick={() => navigate('/request-help')}
+          onClick={() => navigate('/create-favor-request')}
           className="w-full backdrop-blur-md bg-gradient-to-br from-[rgba(125,211,192,0.15)] to-[rgba(137,207,240,0.1)] border-2 border-dashed border-[#7dd3c0]/40 rounded-[1.5rem] p-6 hover:border-[#7dd3c0]/60 hover:shadow-xl hover:shadow-[#7dd3c0]/20 transition-all duration-300 group"
         >
           <div className="flex items-center justify-center gap-3">
