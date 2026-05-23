@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from "react";
-import { Edit, Bell, Package, Moon, Sun, HelpCircle, LogOut, ChevronRight, TrendingUp, Users, Award } from "lucide-react";
+import { Edit, Bell, Package, Moon, Sun, HelpCircle, LogOut, ChevronRight } from "lucide-react";
 
 interface DesktopUserProfileProps {
 }
