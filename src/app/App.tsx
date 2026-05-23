@@ -119,15 +119,25 @@ export default function App() {
             element={
               <AdaptivePage
                 mobile={<RequestHelp />}
+                desktop={<DesktopRequestHelp onOpenDetail={handleOpenDetail} />}
               />
             }
           />
           <Route
-            path="/listing"
+            path="/create-help-request"
             element={
               <AdaptivePage
-                mobile={<ListingCreator onNavigate={() => {}} />}
-                desktop={<DesktopListingCreator onNavigate={() => {}} />}
+                mobile={<CreateHelpRequest />}
+                desktop={<DesktopCreateHelpRequest />}
+              />
+            }
+          />
+          <Route
+            path="/create-favor-request"
+            element={
+              <AdaptivePage
+                mobile={<CreateFavorRequest />}
+                desktop={<DesktopCreateFavorRequest />}
               />
             }
           />
