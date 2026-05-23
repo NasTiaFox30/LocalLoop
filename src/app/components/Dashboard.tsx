@@ -53,7 +53,7 @@ export default function Dashboard(_props: DashboardProps) {
         {/* Quick actions */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <button
-            onClick={() => navigate('/request')}
+            onClick={() => navigate('/request-help')}
             className="relative overflow-hidden rounded-3xl p-5 h-40 backdrop-blur-md bg-gradient-to-br from-[#7dd3c0]/10 via-[#a8d5ba]/10 to-transparent border border-[#7dd3c0]/20 hover:border-[#7dd3c0]/40 transition-all duration-500 group shadow-lg shadow-[#7dd3c0]/5"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#7dd3c0]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -66,7 +66,7 @@ export default function Dashboard(_props: DashboardProps) {
           </button>
 
           <button
-            onClick={() => navigate('/listing')}
+            onClick={() => navigate('/request-favor')}
             className="relative overflow-hidden rounded-3xl p-5 h-40 backdrop-blur-md bg-gradient-to-br from-[#89cff0]/10 via-[#7dd3c0]/10 to-transparent border border-[#89cff0]/20 hover:border-[#89cff0]/40 transition-all duration-500 group shadow-lg shadow-[#89cff0]/5"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#89cff0]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
