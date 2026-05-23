@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus } from 'lucide-react';
-import { favorCategories, favorRequests } from '../../data/appData';
+import { favorCategories, getOffers, getUserById, timeAgo } from '../../data/appData';
 import type { LucideIcon } from 'lucide-react';
 
 // Map iconName strings (from appData) to Lucide icon components
