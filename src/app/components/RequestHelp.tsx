@@ -9,12 +9,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 export default function RequestHelp() {
   const navigate = useNavigate();
-  const [imageUploaded, setImageUploaded] = useState(false);
-  const [requestText, setRequestText] = useState('');
-
-  const handleImageClick = () => {
-    setImageUploaded(true);
-  };
+  const requests = getRequests();
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
