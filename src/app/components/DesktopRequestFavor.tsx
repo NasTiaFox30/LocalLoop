@@ -14,8 +14,7 @@ interface DesktopRequestFavorProps {
 export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavorProps) {
   const navigate = useNavigate();
   const categories = favorCategories;
-
-  const recentRequests = favorRequests;
+  const offers = getOffers();
 
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
