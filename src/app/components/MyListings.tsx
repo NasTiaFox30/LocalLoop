@@ -23,6 +23,7 @@ export default function MyListings() {
           </div>
         </header>
 
+        {/* Active listings */}
         <div className="mb-6">
           <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Aktywne</h3>
           <div className="space-y-4">
@@ -58,6 +59,7 @@ export default function MyListings() {
           </div>
         </div>
 
+        {/* Past listings */}
         <div>
           <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Zakończone</h3>
           <div className="space-y-4">
