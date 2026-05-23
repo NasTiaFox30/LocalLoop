@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, Clock } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 
 interface MyListingsProps {
