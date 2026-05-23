@@ -46,6 +46,17 @@ export default function DesktopMessages() {
     navigate('/messages', { replace: true, state: {} });
   };
 
+  const handleDeleteConversation = (convId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Czy na pewno chcesz usunąć tę rozmowę? Tej akcji nie można cofnąć.')) {
+      deleteConversation(convId);
+      if (selectedConversationId === convId) {
+        setSelectedConversationId(null);
+      }
+      setMenuOpenFor(null);
+    }
+  };
+
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
       <div className="h-screen flex">
