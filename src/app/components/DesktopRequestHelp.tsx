@@ -7,16 +7,13 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 interface DesktopRequestHelpProps {
+  onOpenDetail: (item: any) => void;
 }
 
-export default function DesktopRequestHelp({}: DesktopRequestHelpProps) {
+export default function DesktopRequestHelp({ onOpenDetail }: DesktopRequestHelpProps) {
   const navigate = useNavigate();
-  const [imageUploaded, setImageUploaded] = useState(false);
-  const [requestText, setRequestText] = useState('');
-
-  const handleImageClick = () => {
-    setImageUploaded(true);
-  };
+  const categories = favorCategories;
+  const requests = getRequests();
 
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
