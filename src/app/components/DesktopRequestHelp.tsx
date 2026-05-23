@@ -1,7 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { ImagePlus, Sparkles, Check, Repeat, Star } from 'lucide-react';
-import { ImageWithFallback } from './ImageWithFallback';
+import { favorCategories, getRequests, getUserById, timeAgo } from '../../data/appData';
+import { Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus, Filter } from 'lucide-react';
+
+const iconMap: Record<string, React.ElementType> = {
+  Wrench, Car, BookOpen, Home, Heart, Utensils,
+};
 
 interface DesktopRequestHelpProps {
 }
