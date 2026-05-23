@@ -1,5 +1,4 @@
-import { useNavigate } from 'react-router-dom';
-import { conversations, chatMessages, icebreakerMessages } from '../../data/appData';
+import { conversations } from '../../data/appData';
 import { useState } from 'react';
 import { Search, Send, Sparkles } from 'lucide-react';
 
@@ -7,7 +6,6 @@ interface DesktopMessagesProps {
 }
 
 export default function DesktopMessages({}: DesktopMessagesProps) {
-  const navigate = useNavigate();
   const [selectedChat, setSelectedChat] = useState(0);
   const [inputValue, setInputValue] = useState('');
 
