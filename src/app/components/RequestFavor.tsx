@@ -22,8 +22,8 @@ export default function RequestFavor() {
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
           </button>
           <div>
-            <h1 className="font-medium text-[#f5f3ed]">Poproś o Przysługę</h1>
-            <p className="text-sm text-[#b8b5ad]">Znajdź pomoc w sąsiedztwie</p>
+            <h1 className="font-medium text-[#f5f3ed]">Udostępnij przedmiot lub usługę</h1>
+            <p className="text-sm text-[#b8b5ad]">Co oferują sąsiedzi</p>
           </div>
         </header>
 
@@ -33,14 +33,14 @@ export default function RequestFavor() {
           </div>
           <input
             type="text"
-            placeholder="Czego potrzebujesz?"
+            placeholder="Szukaj przedmiotu lub usługi..."
             className="w-full pl-12 pr-4 py-4 backdrop-blur-md bg-gradient-to-r from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/20 rounded-[1.5rem] text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-xl focus:shadow-[#7dd3c0]/10 transition-all duration-300"
           />
         </div>
 
         {/* Categories */}
         <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] rounded-3xl border border-[#7dd3c0]/15 p-5 shadow-xl mb-6">
-          <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Popularne Kategorie</h3>
+          <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Popularne kategorie</h3>
           <div className="grid grid-cols-2 gap-3">
             {favorCategories.map((category) => {
               const IconComponent = iconMap[category.iconName] ?? Wrench;
@@ -55,7 +55,7 @@ export default function RequestFavor() {
                       <IconComponent className="w-6 h-6 text-[#1e2026]" />
                     </div>
                     <span className="text-sm font-medium text-[#f5f3ed]">{category.label}</span>
-                    <span className="text-xs text-[#b8b5ad] mt-0.5">{category.count} ogłoszeń</span>
+                    <span className="text-xs text-[#b8b5ad] mt-0.5">{count} ofert</span>
                   </div>
                 </button>
               );
@@ -100,7 +100,7 @@ export default function RequestFavor() {
             </div>
             <div className="text-left">
               <p className="text-sm font-medium text-[#f5f3ed]">Nie znalazłeś?</p>
-              <p className="text-xs text-[#7dd3c0]">Dodaj własną prośbę</p>
+              <p className="text-xs text-[#7dd3c0]">Dodaj własną ofertę</p>
             </div>
           </div>
         </button>
