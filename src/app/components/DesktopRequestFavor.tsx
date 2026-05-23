@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { favorCategories, favorRequests } from '../../data/appData';
+import { favorCategories, getOffers, getUserById, timeAgo } from '../../data/appData';
 import { Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus, Filter } from 'lucide-react';
 
 // Mapa nazw ikon do komponentów
