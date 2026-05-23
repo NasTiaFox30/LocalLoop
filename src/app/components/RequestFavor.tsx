@@ -3,7 +3,10 @@ import { ArrowLeft, Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus }
 import { favorCategories, favorRequests } from '../../data/appData';
 import type { LucideIcon } from 'lucide-react';
 
-
+// Map iconName strings (from appData) to Lucide icon components
+const iconMap: Record<string, LucideIcon> = {
+  Wrench, Car, BookOpen, Home, Heart, Utensils,
+};
 
 export default function RequestFavor() {
   const navigate = useNavigate();
