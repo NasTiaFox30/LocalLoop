@@ -14,10 +14,34 @@ export default function DesktopMessages() {
 
   const userConversations = getUserConversations(currentUser.id);
 
-  const handleSendMessage = (text: string) => {
-    if (text.trim()) {
-      setInputValue('');
+  useEffect(() => {
+    const convId = location.state?.conversationId;
+    const listId = location.state?.listingId;
+    const ownId = location.state?.ownerId;
+
+    if (convId) {
+      setSelectedConversationId(convId);
+      setTempChatParams(null);
+    } else if (listId && ownId) {
+      const existingConv = userConversations.find(c => {
+        const otherId = c.participants.find(p => p !== currentUser.id);
+        return c.listingId === listId && otherId === ownId;
+      });
+      if (existingConv) {
+        setSelectedConversationId(existingConv.id);
+        setTempChatParams(null);
+      } else {
+        setSelectedConversationId(null);
+        setTempChatParams({ listingId: listId, ownerId: ownId });
+      }
     }
+    // nie resetuj stanu gdy location.state jest pusty!
+  }, [location.state, userConversations]);
+
+  const handleSelectConversation = (convId: string) => {
+    setSelectedConversationId(convId);
+    setTempChatParams(null);
+    navigate('/messages', { replace: true, state: {} });
   };
 
   return (
