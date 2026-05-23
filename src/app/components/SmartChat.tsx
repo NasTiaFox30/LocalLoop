@@ -1,6 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, Sparkles } from 'lucide-react';
+import { currentUser, getUserById, getListingById } from '../../data/appData';
+import { useConversations } from '../../contexts/ConversationsContext';
 
 export default function SmartChat() {
   const navigate = useNavigate();
