@@ -10,20 +10,6 @@ const iconMap: Record<string, LucideIcon> = {
 
 export default function RequestFavor() {
   const navigate = useNavigate();
-  const categories = [
-    { icon: Wrench, label: 'Naprawa', color: 'from-[#7dd3c0] to-[#a8d5ba]' },
-    { icon: Car, label: 'Transport', color: 'from-[#89cff0] to-[#7dd3c0]' },
-    { icon: BookOpen, label: 'Edukacja', color: 'from-[#a8d5ba] to-[#c2e7d9]' },
-    { icon: Home, label: 'Dom i Ogród', color: 'from-[#7dd3c0] to-[#89cff0]' },
-    { icon: Heart, label: 'Opieka', color: 'from-[#b8d8e8] to-[#89cff0]' },
-    { icon: Utensils, label: 'Gotowanie', color: 'from-[#a8d5ba] to-[#7dd3c0]' },
-  ];
-
-  const recentRequests = [
-    { user: 'Anna K.', request: 'Pomoc w przeprowadzce', time: '2h temu', initials: 'AK', color: 'from-[#7dd3c0] to-[#a8d5ba]' },
-    { user: 'Piotr N.', request: 'Naprawa roweru', time: '5h temu', initials: 'PN', color: 'from-[#89cff0] to-[#7dd3c0]' },
-    { user: 'Ewa W.', request: 'Korepetycje matematyka', time: '1d temu', initials: 'EW', color: 'from-[#a8d5ba] to-[#c2e7d9]' },
-  ];
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
