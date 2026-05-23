@@ -1,10 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus } from 'lucide-react';
 
-interface RequestFavorProps {
-}
 
-export default function RequestFavor({}: RequestFavorProps) {
+export default function RequestFavor() {
   const navigate = useNavigate();
   const categories = [
     { icon: Wrench, label: 'Naprawa', color: 'from-[#7dd3c0] to-[#a8d5ba]' },
