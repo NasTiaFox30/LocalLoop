@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { X, Repeat, Star, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageWithFallback } from './ImageWithFallback';
