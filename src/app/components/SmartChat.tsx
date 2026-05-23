@@ -2,10 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, Sparkles } from 'lucide-react';
 
-interface SmartChatProps {
-}
-
-export default function SmartChat({}: SmartChatProps) {
+export default function SmartChat() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([
     { from: 'them', text: "Cześć! Widzę, że oferujesz wiertarkę. Czy jest nadal dostępna?" },
