@@ -85,22 +85,37 @@ export default function SmartChat() {
         </header>
 
         <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-gradient-to-b from-[#2a2d35] via-[#2a2d35] to-[#25292f]">
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex ${msg.from === 'me' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-[1.25rem] px-5 py-3 shadow-lg ${
-                  msg.from === 'me'
+          {messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7dd3c0]/20 to-[#a8d5ba]/10 flex items-center justify-center mb-4">
+                <Sparkles className="w-10 h-10 text-[#7dd3c0]" />
+              </div>
+              <h3 className="text-lg font-medium text-[#f5f3ed] mb-2">
+                Rozpocznij rozmowę z {otherUser.name.split(' ')[0]}
+              </h3>
+              <p className="text-sm text-[#b8b5ad] max-w-md">
+                Napisz wiadomość, aby omówić szczegóły dotyczące "{listing.title}"
+              </p>
+            </div>
+          )}
+          {messages.map((msg) => {
+            const isFromMe = msg.fromUserId === currentUser.id;
+            return (
+              <div key={msg.id} className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] rounded-[1.25rem] px-5 py-3 shadow-lg ${
+                  isFromMe
                     ? 'bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026]'
                     : 'backdrop-blur-md bg-[rgba(245,243,237,0.95)] text-[#2a2d35] border border-[#7dd3c0]/10'
-                }`}
-              >
-                <p className="text-sm leading-relaxed">{msg.text}</p>
+                }`}>
+                  <p className="text-sm leading-relaxed">{msg.text}</p>
+                  <p className={`text-[10px] mt-1 ${isFromMe ? 'text-[#1e2026]/60' : 'text-[#2a2d35]/50'}`}>
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+          <div ref={messagesEndRef} />
         </div>
 
         <div className="p-4 border-t border-[#7dd3c0]/15 backdrop-blur-md bg-gradient-to-r from-[rgba(60,65,75,0.6)] to-[rgba(50,55,65,0.4)]">
