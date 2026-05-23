@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search } from 'lucide-react';
+import { conversations } from '../../data/appData';
 
 interface MessagesInboxProps {
 }
