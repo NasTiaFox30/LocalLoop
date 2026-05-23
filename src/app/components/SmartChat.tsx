@@ -25,6 +25,14 @@ export default function SmartChat() {
     setInputValue('');
   };
 
+  if (!otherUser || !listing) {
+    return (
+      <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex items-center justify-center">
+        <p>Nie znaleziono konwersacji</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex flex-col">
       <div className="max-w-md mx-auto w-full flex flex-col min-h-screen">
