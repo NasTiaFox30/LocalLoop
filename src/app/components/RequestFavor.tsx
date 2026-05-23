@@ -67,9 +67,9 @@ export default function RequestFavor() {
         <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] rounded-3xl border border-[#7dd3c0]/15 p-5 shadow-xl mb-6">
           <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Ostatnio Dodane</h3>
           <div className="space-y-3">
-            {recentRequests.map((item, idx) => (
+            {favorRequests.map((item) => (
               <button
-                key={idx}
+                key={item.id}
                 onClick={() => navigate('/listing-detail')}
                 className="w-full backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-2xl p-4 hover:border-[#7dd3c0]/25 transition-all duration-300 group"
               >
