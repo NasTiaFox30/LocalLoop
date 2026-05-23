@@ -7,7 +7,7 @@ const iconMap: Record<string, LucideIcon> = {
   Wrench, Car, BookOpen, Home, Heart, Utensils,
 };
 
-export default function RequestHelp({}: RequestHelpProps) {
+export default function RequestHelp() {
   const navigate = useNavigate();
   const [imageUploaded, setImageUploaded] = useState(false);
   const [requestText, setRequestText] = useState('');
