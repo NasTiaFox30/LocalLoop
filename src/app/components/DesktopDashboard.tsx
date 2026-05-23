@@ -17,6 +17,8 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
     setLikedItems((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
   };
 
+  const activityFeed = useMemo(() => getActivityFeed(), []);
+
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
       <div className="max-w-[1440px] mx-auto p-6">

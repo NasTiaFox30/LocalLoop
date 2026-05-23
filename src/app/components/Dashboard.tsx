@@ -14,6 +14,8 @@ export default function Dashboard(_props: DashboardProps) {
     setLikedItems((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
   };
 
+  const activityFeed = useMemo(() => getActivityFeed(), []);
+
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
       <div className="max-w-md mx-auto">
