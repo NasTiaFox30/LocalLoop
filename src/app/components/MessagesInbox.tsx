@@ -6,6 +6,8 @@ import { useConversations } from '../../contexts/ConversationsContext';
 export default function MessagesInbox() {
   const navigate = useNavigate();
   const { getUserConversations } = useConversations();
+  const conversations = getUserConversations(currentUser.id);
+  const unreadCount = conversations.filter(c => c.unreadFor.includes(currentUser.id)).length;
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
