@@ -40,7 +40,7 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
         {/* Quick action cards */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <button
-            onClick={() => navigate('/request')}
+            onClick={() => navigate('/request-help')}
             className="relative overflow-hidden rounded-3xl p-6 h-48 backdrop-blur-md bg-gradient-to-br from-[#89cff0]/10 via-[#7dd3c0]/10 to-transparent border border-[#89cff0]/20 hover:border-[#89cff0]/40 hover:scale-[1.02] transition-all duration-500 group shadow-xl shadow-[#89cff0]/5"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#7dd3c0]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -56,7 +56,7 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
           </button>
 
           <button
-            onClick={() => navigate('/listing')}
+            onClick={() => navigate('/request-favor')}
             className="relative overflow-hidden rounded-3xl p-6 h-48 backdrop-blur-md bg-gradient-to-br from-[#89cff0]/10 via-[#7dd3c0]/10 to-transparent border border-[#89cff0]/20 hover:border-[#89cff0]/40 hover:scale-[1.02] transition-all duration-500 group shadow-xl shadow-[#89cff0]/5"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#89cff0]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
