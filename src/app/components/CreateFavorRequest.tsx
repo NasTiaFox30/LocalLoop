@@ -10,10 +10,10 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "./ImageWithFallback";
 
-interface ListingCreatorProps {
+interface CreateFavorRequestProps {
 }
 
-export default function ListingCreator({}: ListingCreatorProps) {
+export default function CreateFavorRequest({}: CreateFavorRequestProps) {
   const navigate = useNavigate();
   const [imageUploaded, setImageUploaded] = useState(false);
 
