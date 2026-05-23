@@ -44,11 +44,12 @@ export default function SmartChat() {
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
           </button>
           <div className="flex-1">
-            <h2 className="font-medium text-[#f5f3ed]">Anna Kowalska</h2>
-            <p className="text-xs text-[#b8b5ad]">2 przecznice dalej</p>
+            <h2 className="font-medium text-[#f5f3ed]">{otherUser.name}</h2>
+            <p className="text-xs text-[#b8b5ad]">{otherUser.neighborhood}</p>
+            <p className="text-xs text-[#7dd3c0] mt-0.5">Dot. {listing.title}</p>
           </div>
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-lg border-2 border-[#7dd3c0]/30">
-            <span className="text-sm font-medium text-[#1e2026]">AK</span>
+          <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center shadow-lg border-2 border-[#7dd3c0]/30`}>
+            <span className="text-sm font-medium text-[#1e2026]">{otherUser.initials}</span>
           </div>
         </header>
 
