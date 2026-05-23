@@ -63,7 +63,7 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
                 <Leaf className="w-8 h-8 text-[#1e2026]" />
               </div>
               <div>
-                <h3 className="font-medium text-lg text-[#f5f3ed] mb-1">Udostępnij Przedmiot</h3>
+                <h3 className="font-medium text-lg text-[#f5f3ed] mb-1">Pomóc innym</h3>
                 <p className="text-sm text-[#b8b5ad]">Podziel się zasobami</p>
               </div>
             </div>
