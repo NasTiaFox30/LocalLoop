@@ -123,6 +123,13 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
     );
   }, [conversations]);
 
+  // Funkcja do usuwania konwersacji
+  const deleteConversation = useCallback((conversationId: string) => {
+    setConversations(prev => prev.filter(c => c.id !== conversationId));
+    // Usuwamy również wszystkie wiadomości związane z tą konwersacją
+    setMessages(prev => prev.filter(m => m.conversationId !== conversationId));
+  }, []);
+
   const getMessagesForConversation = useCallback((conversationId: string) => {
     return messages.filter(m => m.conversationId === conversationId);
   }, [messages]);
@@ -138,6 +145,7 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
         messages,
         addConversation,
         addMessage,
+        deleteConversation,
         getMessagesForConversation,
         getUserConversations,
       }}
