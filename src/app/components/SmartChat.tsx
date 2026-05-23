@@ -20,10 +20,9 @@ export default function SmartChat() {
   ];
 
   const handleSendMessage = (text: string) => {
-    if (text.trim()) {
-      setMessages([...messages, { from: 'me', text }]);
-      setInputValue('');
-    }
+    if (!text.trim() || !conversation) return;
+    addMessage(conversation.id, text);
+    setInputValue('');
   };
 
   return (
