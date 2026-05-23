@@ -3,10 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { myListings, pastListings } from '../../data/appData';
 
-interface MyListingsProps {
-}
-
-export default function MyListings({}: MyListingsProps) {
+export default function MyListings() {
   const navigate = useNavigate();
   const activeListings = [
     {
