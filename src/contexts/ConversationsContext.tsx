@@ -7,6 +7,7 @@ interface ConversationsContextType {
   messages: ChatMessage[];
   addConversation: (listingId: string, otherUserId: string) => Conversation;
   addMessage: (conversationId: string, text: string) => void;
+  deleteConversation: (conversationId: string) => void;
   getMessagesForConversation: (conversationId: string) => ChatMessage[];
   getUserConversations: (userId: string) => Conversation[];
 }
