@@ -42,19 +42,24 @@ export default function RequestFavor() {
         <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] rounded-3xl border border-[#7dd3c0]/15 p-5 shadow-xl mb-6">
           <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Popularne Kategorie</h3>
           <div className="grid grid-cols-2 gap-3">
-            {categories.map((category, idx) => (
-              <button
-                key={idx}
-                className="relative overflow-hidden backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-2xl p-4 hover:border-[#7dd3c0]/30 hover:shadow-lg hover:shadow-[#7dd3c0]/10 transition-all duration-300 group"
-              >
-                <div className="flex flex-col items-start">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                    <category.icon className="w-6 h-6 text-[#1e2026]" />
+            {favorCategories.map((category) => {
+              const IconComponent = iconMap[category.iconName] ?? Wrench;
+              const gradientClass = `from-[${category.gradientFrom}] to-[${category.gradientTo}]`;
+              return (
+                <button
+                  key={category.id}
+                  className="relative overflow-hidden backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-2xl p-4 hover:border-[#7dd3c0]/30 hover:shadow-lg hover:shadow-[#7dd3c0]/10 transition-all duration-300 group"
+                >
+                  <div className="flex flex-col items-start">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradientClass} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                      <IconComponent className="w-6 h-6 text-[#1e2026]" />
+                    </div>
+                    <span className="text-sm font-medium text-[#f5f3ed]">{category.label}</span>
+                    <span className="text-xs text-[#b8b5ad] mt-0.5">{category.count} ogłoszeń</span>
                   </div>
-                  <span className="text-sm font-medium text-[#f5f3ed]">{category.label}</span>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
 
