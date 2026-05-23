@@ -12,6 +12,14 @@ export default function MessagesInbox() {
   const conversations = getUserConversations(currentUser.id);
   const unreadCount = conversations.filter(c => c.unreadFor.includes(currentUser.id)).length;
 
+  const handleDeleteConversation = (convId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Czy na pewno chcesz usunąć tę rozmowę? Tej akcji nie można cofnąć.')) {
+      deleteConversation(convId);
+      setMenuOpenFor(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
       <div className="max-w-md mx-auto">
