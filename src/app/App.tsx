@@ -165,12 +165,13 @@ export default function App() {
           />
           <Route
             path="/listing-detail"
-            element={
-              <AdaptivePage
-                mobile={<ListingDetail onNavigate={() => {}} />}
-                desktop={<DesktopDashboard onOpenDetail={handleOpenDetail} />}
-              />
-            }
+          <Route 
+            path="/chat" 
+            element={<SmartChat />}
+          />
+          <Route 
+            path="/messages/chat" 
+            element={<SmartChat />}
           />
 
           {/* Fallback */}
