@@ -31,7 +31,7 @@ export default function SmartChat() {
       <div className="max-w-md mx-auto w-full flex flex-col min-h-screen">
         <header className="flex items-center gap-3 p-4 border-b border-[#7dd3c0]/15 backdrop-blur-md bg-gradient-to-r from-[rgba(60,65,75,0.6)] to-[rgba(50,55,65,0.4)]">
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/messages')}
             className="w-11 h-11 rounded-2xl backdrop-blur-sm bg-[rgba(40,43,50,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40 transition-all duration-300"
           >
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
