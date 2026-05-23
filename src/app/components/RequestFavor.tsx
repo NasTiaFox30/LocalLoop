@@ -10,6 +10,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 export default function RequestFavor() {
   const navigate = useNavigate();
+  const offers = getOffers();
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
