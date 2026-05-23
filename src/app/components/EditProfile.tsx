@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Camera, Trash2 } from 'lucide-react';
 
 interface EditProfileProps {
 }
