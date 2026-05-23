@@ -24,8 +24,11 @@ import DesktopMyListings from './components/DesktopMyListings';
 import MyListings from './components/MyListings';
 import DesktopEditProfile from './components/DesktopEditProfile';
 import EditProfile from './components/EditProfile';
-import ListingDetail from './components/ListingDetail';
+import DesktopDetailDrawer from './components/DesktopDetailDrawer';
 import DetailDrawer from './components/DetailDrawer';
+import SmartChat from './components/SmartChat';
+import DesktopCreateHelpRequest from './components/DesktopCreateHelpRequest';
+import { ConversationsProvider} from '../contexts/ConversationsContext';
 
 // Routes that show the main app chrome (sidebar + bottom nav)
 const APP_ROUTES = [
@@ -78,6 +81,7 @@ export default function App() {
   };
 
   return (
+    <ConversationsProvider>
     <div className="size-full min-h-screen bg-[#2a2d35]">
       {/* Desktop sidebar – only visible on app routes */}
       {isAppRoute && <DesktopSidebar />}
@@ -95,16 +99,16 @@ export default function App() {
             path="/dashboard"
             element={
               <AdaptivePage
-                mobile={<Dashboard onNavigate={() => {}} />}
+                mobile={<Dashboard />}
                 desktop={<DesktopDashboard onOpenDetail={handleOpenDetail} />}
               />
             }
           />
           <Route
-            path="/request"
+            path="/request-favor"
             element={
               <AdaptivePage
-                mobile={<RequestFavor onNavigate={() => {}} />}
+                mobile={<RequestFavor />}
                 desktop={<DesktopRequestFavor onOpenDetail={handleOpenDetail} />}
               />
             }
@@ -113,8 +117,7 @@ export default function App() {
             path="/request-help"
             element={
               <AdaptivePage
-                mobile={<RequestHelp onNavigate={() => {}} />}
-                desktop={<DesktopRequestHelp onNavigate={() => {}} />}
+                mobile={<RequestHelp />}
               />
             }
           />
@@ -131,8 +134,8 @@ export default function App() {
             path="/messages"
             element={
               <AdaptivePage
-                mobile={<MessagesInbox onNavigate={() => {}} />}
-                desktop={<DesktopMessages onNavigate={() => {}} />}
+                mobile={<MessagesInbox />}
+                desktop={<DesktopMessages />}
               />
             }
           />
@@ -140,8 +143,8 @@ export default function App() {
             path="/profile"
             element={
               <AdaptivePage
-                mobile={<UserProfile onNavigate={() => {}} />}
-                desktop={<DesktopUserProfile onNavigate={() => {}} />}
+                mobile={<UserProfile />}
+                desktop={<DesktopUserProfile />}
               />
             }
           />
@@ -149,8 +152,8 @@ export default function App() {
             path="/my-listings"
             element={
               <AdaptivePage
-                mobile={<MyListings onNavigate={() => {}} />}
-                desktop={<DesktopMyListings onNavigate={() => {}} />}
+                mobile={<MyListings />}
+                desktop={<DesktopMyListings/>}
               />
             }
           />
@@ -158,19 +161,22 @@ export default function App() {
             path="/edit-profile"
             element={
               <AdaptivePage
-                mobile={<EditProfile onNavigate={() => {}} />}
-                desktop={<DesktopEditProfile onNavigate={() => {}} />}
+                mobile={<EditProfile />}
+                desktop={<DesktopEditProfile />}
               />
             }
           />
           <Route
             path="/listing-detail"
-            element={
-              <AdaptivePage
-                mobile={<ListingDetail onNavigate={() => {}} />}
-                desktop={<DesktopDashboard onOpenDetail={handleOpenDetail} />}
-              />
-            }
+            element={<DetailDrawer />}
+          />
+          <Route 
+            path="/chat" 
+            element={<SmartChat />}
+          />
+          <Route 
+            path="/messages/chat" 
+            element={<SmartChat />}
           />
 
           {/* Fallback */}
@@ -186,7 +192,7 @@ export default function App() {
       </div>
 
       {/* Detail drawer (desktop) */}
-      <DetailDrawer
+      <DesktopDetailDrawer
         isOpen={isDetailDrawerOpen}
         onClose={handleCloseDetail}
         onChat={() => {
@@ -195,5 +201,6 @@ export default function App() {
         item={selectedItem}
       />
     </div>
+    </ConversationsProvider>
   );
 }

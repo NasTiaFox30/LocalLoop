@@ -1,10 +1,24 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search } from 'lucide-react';
-import { conversations } from '../../data/appData';
+import { ArrowLeft, Search, MoreVertical, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { currentUser, getUserById, getListingById, timeAgo } from '../../data/appData';
+import { useConversations } from '../../contexts/ConversationsContext';
 
 export default function MessagesInbox() {
   const navigate = useNavigate();
-  const unreadCount = conversations.filter(c => c.unread).length;
+  const { getUserConversations, deleteConversation } = useConversations();
+  const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
+  
+  const conversations = getUserConversations(currentUser.id);
+  const unreadCount = conversations.filter(c => c.unreadFor.includes(currentUser.id)).length;
+
+  const handleDeleteConversation = (convId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Czy na pewno chcesz usunąć tę rozmowę? Tej akcji nie można cofnąć.')) {
+      deleteConversation(convId);
+      setMenuOpenFor(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
@@ -34,36 +48,73 @@ export default function MessagesInbox() {
         </div>
 
         <div className="space-y-3">
-          {conversations.map((conv) => (
-            <button
-              key={conv.id}
-              onClick={() => navigate('/messages/chat')}
-              className={`w-full backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border ${
-                conv.unread ? 'border-[#7dd3c0]/30' : 'border-[#7dd3c0]/10'
-              } rounded-2xl p-4 hover:border-[#7dd3c0]/40 transition-all duration-300 flex items-start gap-3`}
-            >
-              <div className="relative">
-                <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${conv.avatarColor} flex items-center justify-center shadow-lg flex-shrink-0`}>
-                  <span className="text-sm font-medium text-[#1e2026]">{conv.initials}</span>
+          {conversations.map((conv) => {
+            const otherUserId = conv.participants.find(p => p !== currentUser.id)!;
+            const otherUser = getUserById(otherUserId)!;
+            const listing = getListingById(conv.listingId)!;
+            const isUnread = conv.unreadFor.includes(currentUser.id);
+
+            return (
+              <div key={conv.id} className="relative group">
+                <button
+                  onClick={() => navigate('/messages/chat', { state: { conversationId: conv.id } })}
+                  className={`w-full backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border ${
+                    isUnread ? 'border-[#7dd3c0]/30' : 'border-[#7dd3c0]/10'
+                  } rounded-2xl p-4 hover:border-[#7dd3c0]/40 transition-all duration-300 flex items-start gap-3`}
+                >
+                  <div className="relative">
+                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                      <span className="text-sm font-medium text-[#1e2026]">{otherUser.initials}</span>
+                    </div>
+                    {isUnread && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] border-2 border-[#2a2d35] shadow-lg" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="flex items-start justify-between mb-1">
+                      <h3 className={`font-medium ${isUnread ? 'text-[#7dd3c0]' : 'text-[#f5f3ed]'}`}>
+                        {otherUser.name}
+                      </h3>
+                      <span className="text-xs text-[#b8b5ad] flex-shrink-0 ml-2">{timeAgo(conv.lastMessageTime)}</span>
+                    </div>
+                    <p className={`text-sm ${isUnread ? 'text-[#f5f3ed]' : 'text-[#b8b5ad]'} truncate`}>
+                      {conv.lastMessage}
+                    </p>
+                    <p className="text-xs text-[#b8b5ad] mt-1 truncate">
+                      Dot. {listing.title}
+                    </p>
+                  </div>
+                </button>
+
+                {/* Menu z trzema kropkami */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpenFor(menuOpenFor === conv.id ? null : conv.id);
+                    }}
+                    className="absolute top-4 right-0 w-6 h-6 rounded-xl backdrop-blur-sm bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40 transition-all duration-300"
+                  >
+                    <MoreVertical className="w-5 h-5 text-[#7dd3c0]" />
+                  </button>
+
+                  
                 </div>
-                {conv.unread && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] border-2 border-[#2a2d35] shadow-lg" />
+                {menuOpenFor === conv.id && (
+                  <div className="absolute right-0 top-12 z-20 w-40 backdrop-blur-xl bg-[rgba(42,45,53,0.95)] border border-[#7dd3c0]/20 rounded-xl shadow-2xl overflow-hidden">
+                    <button
+                      onClick={(e) => handleDeleteConversation(conv.id, e)}
+                      className="w-full px-4 py-3 text-sm text-[#e88d8d] hover:bg-[rgba(232,141,141,0.1)] flex items-center gap-2 transition-all duration-200"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Usuń chat
+                    </button>
+                  </div>
                 )}
               </div>
-
-              <div className="flex-1 text-left min-w-0">
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className={`font-medium ${conv.unread ? 'text-[#7dd3c0]' : 'text-[#f5f3ed]'}`}>
-                    {conv.name}
-                  </h3>
-                  <span className="text-xs text-[#b8b5ad] flex-shrink-0 ml-2">{conv.time}</span>
-                </div>
-                <p className={`text-sm ${conv.unread ? 'text-[#f5f3ed]' : 'text-[#b8b5ad]'} truncate`}>
-                  {conv.lastMessage}
-                </p>
-              </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

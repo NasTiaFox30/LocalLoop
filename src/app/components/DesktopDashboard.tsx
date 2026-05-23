@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Leaf, Activity, Heart, MessageCircle, Mail, TrendingUp, Users, Sparkles } from 'lucide-react';
-import { activityFeed, communityStats, currentUser } from '../../data/appData';
+import { currentUser, communityStats, getActivityFeed, getUserById, getListingById, getActionText, timeAgo } from '../../data/appData';
 import type { ActivityItem } from '../../data/appData';
 
 interface DesktopDashboardProps {
@@ -16,6 +16,8 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
   const toggleLike = (id: string) => {
     setLikedItems((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
   };
+
+  const activityFeed = useMemo(() => getActivityFeed(), []);
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
@@ -63,7 +65,7 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
                 <Leaf className="w-8 h-8 text-[#1e2026]" />
               </div>
               <div>
-                <h3 className="font-medium text-lg text-[#f5f3ed] mb-1">Udostępnij Przedmiot</h3>
+                <h3 className="font-medium text-lg text-[#f5f3ed] mb-1">Pomóc innym</h3>
                 <p className="text-sm text-[#b8b5ad]">Podziel się zasobami</p>
               </div>
             </div>
@@ -97,39 +99,41 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
               <Activity className="w-6 h-6 text-[#7dd3c0]" />
             </div>
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-              {activityFeed.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => onOpenDetail(item)}
-                  className="flex items-start gap-4 p-4 rounded-2xl backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 hover:border-[#7dd3c0]/30 hover:scale-[1.01] transition-all duration-300 group cursor-pointer shadow-lg hover:shadow-xl hover:shadow-[#7dd3c0]/10"
-                >
-                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${item.avatarColor} flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <span className="text-base font-medium text-[#1e2026]">{item.initials}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-base text-[#f5f3ed]">
-                      <span className="font-medium text-[#7dd3c0]">{item.user}</span> {item.action}
-                    </p>
-                    <p className="text-sm text-[#b8b5ad] mt-1">{item.time}</p>
-                    <div className="flex gap-4 mt-3">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }}
-                        className={`flex items-center gap-2 text-sm transition-all duration-300 hover:scale-110 ${likedItems.includes(item.id) ? 'text-[#7dd3c0]' : 'text-[#b8b5ad] hover:text-[#7dd3c0]'}`}
-                      >
-                        <Heart className={`w-4 h-4 transition-all duration-300 ${likedItems.includes(item.id) ? 'fill-[#7dd3c0]' : ''}`} />
-                        <span>{item.likes + (likedItems.includes(item.id) ? 1 : 0)}</span>
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); navigate('/messages'); }}
-                        className="flex items-center gap-2 text-sm text-[#b8b5ad] hover:text-[#7dd3c0] hover:scale-110 transition-all duration-300"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>Odpowiedz</span>
-                      </button>
+              {activityFeed.map((item) => {
+                const user = getUserById(item.userId);
+                const listing = getListingById(item.listingId);
+                if (!user || !listing) return null;
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => onOpenDetail(item)}
+                    className="flex items-start gap-4 p-4 rounded-2xl backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 hover:border-[#7dd3c0]/30 hover:scale-[1.01] transition-all duration-300 group cursor-pointer shadow-lg hover:shadow-xl hover:shadow-[#7dd3c0]/10"
+                  >
+                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${user.avatarColor} flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <span className="text-base font-medium text-[#1e2026]">{user.initials}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base text-[#f5f3ed]">
+                        <span className="font-medium text-[#7dd3c0]">{user.name}</span> {getActionText(item.action, listing, user)}
+                      </p>
+                      <p className="text-sm text-[#b8b5ad] mt-1">{timeAgo(item.timestamp)}</p>
+                      <div className="flex gap-4 mt-3">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }}
+                          className={`flex items-center gap-2 text-sm transition-all duration-300 hover:scale-110 ${likedItems.includes(item.id) ? 'text-[#7dd3c0]' : 'text-[#b8b5ad] hover:text-[#7dd3c0]'}`}
+                        >
+                          <Heart className={`w-4 h-4 transition-all duration-300 ${likedItems.includes(item.id) ? 'fill-[#7dd3c0]' : ''}`} />
+                          <span>{item.likes + (likedItems.includes(item.id) ? 1 : 0)}</span>
+                        </button>
+                        <button className="flex items-center gap-2 text-sm text-[#b8b5ad] hover:text-[#7dd3c0] hover:scale-110 transition-all duration-300">
+                          <MessageCircle className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

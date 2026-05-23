@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// LocalLoop – centralny plik danych aplikacji
+// LocalLoop – centralny plik danych aplikacji (REFACTORED)
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Typy ─────────────────────────────────────────────────────────────────────
@@ -19,46 +19,53 @@ export interface User {
   isCurrentUser?: boolean;
 }
 
+export interface Listing {
+  id: string;
+  ownerId: string;
+  title: string;
+  description: string;
+  image: string;
+  status: 'active' | 'completed' | 'pending';
+  category: string;
+  createdAt: string;
+  views: number;
+  interestedCount: number;
+  // Specific to listing type
+  listingType: 'offer' | 'request';
+  // Value suggestions
+  suggestedBarter?: string;
+  suggestedPoints?: number;
+  // For completed listings
+  completedWith?: string;
+  completedWithUserId?: string;
+  completedAt?: string;
+}
+
 export interface ActivityItem {
   id: string;
+  listingId: string;
   userId: string;
-  user: string;
-  initials: string;
-  avatarColor: string;
-  action: string;
-  time: string;
+  action: 'created_offer' | 'created_request' | 'completed_exchange' | 'liked_listing';
+  timestamp: string;
   likes: number;
-  category: string;
 }
 
 export interface Conversation {
   id: string;
-  initials: string;
-  name: string;
+  participants: string[]; // userIds
+  listingId: string;
   lastMessage: string;
-  time: string;
-  unread: boolean;
-  avatarColor: string;
+  lastMessageTime: string;
+  unreadFor: string[]; // userIds who have unread messages
 }
 
 export interface ChatMessage {
   id: string;
-  from: 'me' | 'them';
+  conversationId: string;
+  fromUserId: string;
   text: string;
-  time?: string;
-}
-
-export interface Listing {
-  id: string;
-  title: string;
-  image: string;
-  status: 'Aktywne' | 'Ukończone' | 'Oczekujące';
-  views?: number;
-  interested?: number;
-  completedWith?: string;
-  category?: string;
-  description?: string;
-  ownerId?: string;
+  timestamp: string;
+  read: boolean;
 }
 
 export interface FavorCategory {
@@ -67,23 +74,6 @@ export interface FavorCategory {
   iconName: string;
   gradientFrom: string;
   gradientTo: string;
-  count: number;
-}
-
-export interface FavorRequest {
-  id: string;
-  userId: string;
-  user: string;
-  initials: string;
-  avatarColor: string;
-  request: string;
-  time: string;
-  category: string;
-}
-
-export interface Onboarding {
-  stats: { label: string; value: string }[];
-  tagline: string;
 }
 
 export interface CommunityStats {
@@ -92,28 +82,23 @@ export interface CommunityStats {
   impactScore: number;
 }
 
-export interface IcebreakerMessage {
-  id: string;
-  text: string;
-}
-
-// ── Dane użytkowników ─────────────────────────────────────────────────────────
-
-export const currentUser: User = {
-  id: 'user-1',
-  name: 'Jan Kowalski',
-  initials: 'JK',
-  email: 'jan.kowalski@email.com',
-  avatarColor: 'from-[#89cff0]/20 to-[#7dd3c0]/20',
-  memberSince: 'Styczeń 2024',
-  neighborhood: 'Śródmieście, Gdynia',
-  bio: 'Pasjonat ekologii i lokalnej społeczności. Wierzę, że razem możemy tworzyć lepsze sąsiedztwo!',
-  impactScore: 12,
-  exchangesCount: 8,
-  communityHealth: 87,
-};
+// ── Users ─────────────────────────────────────────────────────────────────────
 
 export const users: User[] = [
+  {
+    id: 'user-1',
+    name: 'Jan Kowalski',
+    initials: 'JK',
+    email: 'jan.kowalski@email.com',
+    avatarColor: 'from-[#89cff0]/20 to-[#7dd3c0]/20',
+    memberSince: 'Styczeń 2024',
+    neighborhood: 'Śródmieście, Gdynia',
+    bio: 'Pasjonat ekologii i lokalnej społeczności. Wierzę, że razem możemy tworzyć lepsze sąsiedztwo!',
+    impactScore: 12,
+    exchangesCount: 8,
+    communityHealth: 87,
+    isCurrentUser: true,
+  },
   {
     id: 'user-2',
     name: 'Anna Kowalska',
@@ -194,334 +179,394 @@ export const users: User[] = [
   },
 ];
 
-// ── Aktywność sąsiadów ────────────────────────────────────────────────────────
+export const currentUser = users.find(u => u.isCurrentUser)!;
 
-export const activityFeed: ActivityItem[] = [
+// Helper function to get user by ID
+export const getUserById = (userId: string): User | undefined => {
+  return users.find(u => u.id === userId);
+};
+
+// ── Listings (Single source of truth) ─────────────────────────────────────────
+
+export const listings: Listing[] = [
+  // OFFERS (services/goods offered by users)
   {
-    id: 'act-1',
-    userId: 'user-2',
-    user: 'Anna Kowalska',
-    initials: 'AK',
-    avatarColor: 'from-[#7dd3c0] to-[#a8d5ba]',
-    action: 'pożyczyła wiertarkę',
-    time: '2 godz. temu',
-    likes: 4,
+    id: 'lst-1',
+    ownerId: 'user-1',
+    title: 'Wiertarka udarowa Bosch Professional',
+    description: 'Wiertarka udarowa Bosch Professional w świetnym stanie, z baterią i ładowarką. Idealna do montażu mebli czy drobnych napraw. Chętnie podzielę się nią z sąsiadami! 🌱',
+    image: 'https://images.unsplash.com/photo-1770763233593-74dfd0da7bf0?w=400',
+    status: 'active',
     category: 'Narzędzia',
+    createdAt: '2024-01-15T10:00:00Z',
+    views: 24,
+    interestedCount: 3,
+    listingType: 'offer',
+    suggestedBarter: 'Ciasto drożdżowe lub pomoc w ogrodzie',
+    suggestedPoints: 85,
   },
   {
-    id: 'act-2',
-    userId: 'user-3',
-    user: 'Piotr Nowak',
-    initials: 'PN',
-    avatarColor: 'from-[#89cff0] to-[#7dd3c0]',
-    action: 'oferuje pomoc w przeprowadzce',
-    time: '4 godz. temu',
-    likes: 7,
-    category: 'Transport',
+    id: 'lst-2',
+    ownerId: 'user-1',
+    title: 'Sekator ogrodowy',
+    description: 'Sekator ogrodowy w dobrym stanie, idealny do przycinania krzewów i drzewek.',
+    image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400',
+    status: 'active',
+    category: 'Ogród',
+    createdAt: '2024-01-20T10:00:00Z',
+    views: 12,
+    interestedCount: 1,
+    listingType: 'offer',
+    suggestedBarter: 'Świeże zioła lub pomoc w ogrodzie',
+    suggestedPoints: 45,
   },
   {
-    id: 'act-3',
-    userId: 'user-4',
-    user: 'Ewa Wiśniewska',
-    initials: 'EW',
-    avatarColor: 'from-[#a8d5ba] to-[#c2e7d9]',
-    action: 'udostępniła drożdżówki',
-    time: '6 godz. temu',
-    likes: 12,
-    category: 'Jedzenie',
-  },
-  {
-    id: 'act-4',
-    userId: 'user-5',
-    user: 'Marek Zieliński',
-    initials: 'MZ',
-    avatarColor: 'from-[#b8d8e8] to-[#89cff0]',
-    action: 'szuka narzędzi ogrodowych',
-    time: '1 dzień temu',
-    likes: 3,
-    category: 'Dom i Ogród',
-  },
-  {
-    id: 'act-5',
-    userId: 'user-6',
-    user: 'Kasia Nowak',
-    initials: 'KN',
-    avatarColor: 'from-[#7dd3c0] to-[#89cff0]',
-    action: 'oferuje korepetycje z matematyki',
-    time: '1 dzień temu',
-    likes: 8,
+    id: 'lst-3',
+    ownerId: 'user-2',
+    title: 'Korepetycje z matematyki',
+    description: 'Oferuję korepetycje z matematyki dla szkół podstawowych i średnich. Doświadczenie 5 lat.',
+    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400',
+    status: 'active',
     category: 'Edukacja',
+    createdAt: '2024-01-18T10:00:00Z',
+    views: 45,
+    interestedCount: 5,
+    listingType: 'offer',
+    suggestedBarter: 'Wymiana na pomoc w ogrodzie lub domowe wypieki',
+    suggestedPoints: 100,
   },
   {
-    id: 'act-6',
-    userId: 'user-7',
-    user: 'Tomasz Kowalczyk',
-    initials: 'TK',
-    avatarColor: 'from-[#a8d5ba] to-[#7dd3c0]',
-    action: 'wymienił rower na gitarę',
-    time: '2 dni temu',
-    likes: 15,
-    category: 'Wymiana',
+    id: 'lst-4',
+    ownerId: 'user-3',
+    title: 'Pomoc w naprawie roweru',
+    description: 'Jestem mechanikiem rowerowym z pasją. Pomogę w regulacji przerzutek, hamulców i podstawowych naprawach.',
+    image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=400',
+    status: 'active',
+    category: 'Naprawa',
+    createdAt: '2024-01-19T10:00:00Z',
+    views: 32,
+    interestedCount: 4,
+    listingType: 'offer',
+    suggestedBarter: 'Domowe ciasto lub pomoc w ogrodzie',
+    suggestedPoints: 60,
+  },
+  {
+    id: 'lst-5',
+    ownerId: 'user-4',
+    title: 'Domowe wypieki',
+    description: 'Piekę pyszne drożdżówki, ciasta i chleb. Mogę podzielić się z sąsiadami!',
+    image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400',
+    status: 'active',
+    category: 'Jedzenie',
+    createdAt: '2024-01-21T10:00:00Z',
+    views: 67,
+    interestedCount: 12,
+    listingType: 'offer',
+    suggestedBarter: 'Wymiana na warzywa z ogrodu lub pomoc w ogrodzie',
+    suggestedPoints: 30,
+  },
+  {
+    id: 'lst-6',
+    ownerId: 'user-5',
+    title: 'Kosiarka elektryczna',
+    description: 'Kosiarka elektryczna, sprawna i gotowa do użycia. Idealna do małych ogrodów.',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+    status: 'active',
+    category: 'Dom i Ogród',
+    createdAt: '2024-01-22T10:00:00Z',
+    views: 18,
+    interestedCount: 2,
+    listingType: 'offer',
+    suggestedBarter: 'Pomoc w ogrodzie w zamian',
+    suggestedPoints: 70,
+  },
+  {
+    id: 'lst-7',
+    ownerId: 'user-7',
+    title: 'Drabina aluminiowa',
+    description: 'Drabina aluminiowa 4-stopniowa, stabilna i lekka.',
+    image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400',
+    status: 'completed',
+    category: 'Narzędzia',
+    createdAt: '2023-12-01T10:00:00Z',
+    views: 89,
+    interestedCount: 7,
+    listingType: 'offer',
+    completedWith: 'Piotr N.',
+    completedWithUserId: 'user-3',
+    completedAt: '2023-12-15T10:00:00Z',
+  },
+  
+  // REQUESTS (help requests from users)
+  {
+    id: 'req-1',
+    ownerId: 'user-2',
+    title: 'Pomoc w przeprowadzce',
+    description: 'Potrzebuję pomocy przy wniesieniu mebli na 3 piętro. Brak windy.',
+    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400',
+    status: 'active',
+    category: 'Transport',
+    createdAt: '2024-01-23T10:00:00Z',
+    views: 56,
+    interestedCount: 3,
+    listingType: 'request',
+    suggestedBarter: 'Domowe ciasto lub 50 punktów społecznościowych',
+    suggestedPoints: 50,
+  },
+  {
+    id: 'req-2',
+    ownerId: 'user-3',
+    title: 'Naprawa roweru - potrzebuję pomocy',
+    description: 'Mój rower wymaga regulacji przerzutek. Ktoś pomoże?',
+    image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=400',
+    status: 'active',
+    category: 'Naprawa',
+    createdAt: '2024-01-24T10:00:00Z',
+    views: 34,
+    interestedCount: 2,
+    listingType: 'request',
+    suggestedBarter: 'Pomoc w ogrodzie w zamian',
+    suggestedPoints: 40,
+  },
+  {
+    id: 'req-3',
+    ownerId: 'user-4',
+    title: 'Korepetycje z angielskiego dla dziecka',
+    description: 'Szukam korepetytora z angielskiego dla 10-letniego syna. 2 razy w tygodniu.',
+    image: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400',
+    status: 'active',
+    category: 'Edukacja',
+    createdAt: '2024-01-25T10:00:00Z',
+    views: 28,
+    interestedCount: 1,
+    listingType: 'request',
+    suggestedBarter: 'Wymiana na domowe wypieki',
+    suggestedPoints: 80,
+  },
+  {
+    id: 'req-4',
+    ownerId: 'user-5',
+    title: 'Pożyczenie kosiarki',
+    description: 'Czy ktoś mógłby pożyczyć kosiarkę na weekend? Moja się zepsuła.',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+    status: 'active',
+    category: 'Dom i Ogród',
+    createdAt: '2024-01-26T10:00:00Z',
+    views: 42,
+    interestedCount: 4,
+    listingType: 'request',
+    suggestedBarter: 'Pomoc w ogrodzie w zamian',
+    suggestedPoints: 60,
+  },
+  {
+    id: 'req-5',
+    ownerId: 'user-6',
+    title: 'Transport mebli',
+    description: 'Potrzebuję przewieźć sofę z Ikei do domu. Ktoś z samochodem?',
+    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400',
+    status: 'active',
+    category: 'Transport',
+    createdAt: '2024-01-27T10:00:00Z',
+    views: 38,
+    interestedCount: 2,
+    listingType: 'request',
+    suggestedBarter: 'Domowe ciasto + 30 punktów',
+    suggestedPoints: 70,
+  },
+  {
+    id: 'req-6',
+    ownerId: 'user-7',
+    title: 'Pomoc w malowaniu pokoju',
+    description: 'Ktoś pomoże mi pomalować pokój? Sam nie dam rady.',
+    image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400',
+    status: 'active',
+    category: 'Dom i Ogród',
+    createdAt: '2024-01-28T10:00:00Z',
+    views: 25,
+    interestedCount: 3,
+    listingType: 'request',
+    suggestedBarter: 'Domowe jedzenie + pomoc w ogrodzie',
+    suggestedPoints: 90,
   },
 ];
 
-// ── Wiadomości / Konwersacje ───────────────────────────────────────────────────
+// Helper functions for listings
+export const getListingsByUser = (userId: string): Listing[] => {
+  return listings.filter(l => l.ownerId === userId);
+};
+
+export const getOffers = (): Listing[] => {
+  return listings.filter(l => l.listingType === 'offer' && l.status === 'active');
+};
+
+export const getRequests = (): Listing[] => {
+  return listings.filter(l => l.listingType === 'request' && l.status === 'active');
+};
+
+export const getActiveListingsByUser = (userId: string): Listing[] => {
+  return listings.filter(l => l.ownerId === userId && l.status === 'active');
+};
+
+export const getCompletedListingsByUser = (userId: string): Listing[] => {
+  return listings.filter(l => l.ownerId === userId && l.status === 'completed');
+};
+
+export const getListingById = (id: string): Listing | undefined => {
+  return listings.find(l => l.id === id);
+};
+
+// ── Activity Feed (generated from listings and interactions) ──────────────────
+
+// Generate activity items dynamically from listings
+export const getActivityFeed = (): ActivityItem[] => {
+  // Get all listings, sort by createdAt descending, take first 5
+  const recentListings = [...listings]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 6);
+
+  const activities: ActivityItem[] = recentListings.map((listing, index) => ({
+    id: `act-${listing.id}`,
+    listingId: listing.id,
+    userId: listing.ownerId,
+    action: listing.listingType === 'offer' ? 'created_offer' : 'created_request',
+    timestamp: listing.createdAt,
+    likes: Math.floor(Math.random() * 15) + 1, // випадкові лайки для демо
+  }));
+
+  // Sort by timestamp descending (newest first)
+  return activities.sort((a, b) => 
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+};
+
+// Helper to format time ago
+export const timeAgo = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (seconds < 60) return `${seconds} sek. temu`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min temu`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} godz. temu`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} dni temu`;
+  return date.toLocaleDateString('pl-PL');
+};
+
+// Get action text based on action type
+export const getActionText = (action: ActivityItem['action'], listing: Listing, user: User): string => {
+  switch (action) {
+    case 'created_offer':
+      return `udostępnia przedmiot: ${listing.title}`;
+    case 'created_request':
+      return `prosi o pomoc: ${listing.title}`;
+    case 'completed_exchange':
+      return `wymienił(a) się z sąsiadem`;
+    default:
+      return `interakcja z ogłoszeniem`;
+  }
+};
+
+// ── Conversations & Messages ───────────────────────────────────────────────────
 
 export const conversations: Conversation[] = [
   {
     id: 'conv-1',
-    initials: 'AK',
-    name: 'Anna Kowalska',
+    participants: ['user-1', 'user-2'],
+    listingId: 'lst-1',
     lastMessage: 'Świetnie! Mogę odebrać wiertarkę w sobotę rano',
-    time: '10 min',
-    unread: true,
-    avatarColor: 'from-[#7dd3c0] to-[#a8d5ba]',
+    lastMessageTime: '2024-01-28T10:30:00Z',
+    unreadFor: ['user-1'],
   },
   {
     id: 'conv-2',
-    initials: 'PN',
-    name: 'Piotr Nowak',
+    participants: ['user-1', 'user-3'],
+    listingId: 'req-2',
     lastMessage: 'Dziękuję za pomoc! Naprawdę doceniam',
-    time: '2 godz.',
-    unread: false,
-    avatarColor: 'from-[#89cff0] to-[#7dd3c0]',
+    lastMessageTime: '2024-01-27T15:20:00Z',
+    unreadFor: [],
   },
   {
     id: 'conv-3',
-    initials: 'EW',
-    name: 'Ewa Wiśniewska',
+    participants: ['user-1', 'user-4'],
+    listingId: 'lst-5',
     lastMessage: 'Drożdżówki są gotowe do odbioru 🥐',
-    time: '5 godz.',
-    unread: true,
-    avatarColor: 'from-[#a8d5ba] to-[#c2e7d9]',
+    lastMessageTime: '2024-01-28T08:15:00Z',
+    unreadFor: ['user-1'],
   },
   {
     id: 'conv-4',
-    initials: 'MZ',
-    name: 'Marek Zieliński',
-    lastMessage: 'Czy mogę pożyczyć sekator w przyszłym...',
-    time: '1 dzień',
-    unread: false,
-    avatarColor: 'from-[#b8d8e8] to-[#89cff0]',
-  },
-  {
-    id: 'conv-5',
-    initials: 'KS',
-    name: 'Kasia Szymańska',
-    lastMessage: 'Super, dzięki za ciasto!',
-    time: '2 dni',
-    unread: false,
-    avatarColor: 'from-[#7dd3c0] to-[#89cff0]',
+    participants: ['user-1', 'user-5'],
+    listingId: 'req-4',
+    lastMessage: 'Czy mogę pożyczyć sekator w przyszłym tygodniu?',
+    lastMessageTime: '2024-01-26T12:00:00Z',
+    unreadFor: [],
   },
 ];
 
-export const chatMessages: Record<string, ChatMessage[]> = {
-  'conv-1': [
-    { id: 'm1', from: 'them', text: 'Cześć! Widzę, że oferujesz wiertarkę. Czy jest nadal dostępna?' },
-    { id: 'm2', from: 'me', text: 'Tak, jest! Kiedy byś jej potrzebował/a?' },
-    { id: 'm3', from: 'them', text: 'W sobotę planuję montaż półek. Czy mogłabym pożyczyć ją na weekend?' },
-    { id: 'm4', from: 'me', text: 'Oczywiście! Mogę przynieść ją w sobotę rano.' },
-    { id: 'm5', from: 'them', text: 'Świetnie! Mogę odebrać wiertarkę w sobotę rano' },
-  ],
-  'conv-2': [
-    { id: 'm1', from: 'me', text: 'Hej Piotrze, potrzebuję pomocy z przeprowadzką.' },
-    { id: 'm2', from: 'them', text: 'Jasne, kiedy planujesz?' },
-    { id: 'm3', from: 'me', text: 'W następną sobotę.' },
-    { id: 'm4', from: 'them', text: 'Dziękuję za pomoc! Naprawdę doceniam' },
-  ],
-  'conv-3': [
-    { id: 'm1', from: 'them', text: 'Cześć! Upiekłam dzisiaj drożdżówki.' },
-    { id: 'm2', from: 'me', text: 'Brzmi pysznie! Mogę wpaść?' },
-    { id: 'm3', from: 'them', text: 'Drożdżówki są gotowe do odbioru 🥐' },
-  ],
+export const chatMessages: ChatMessage[] = [
+  { id: 'msg-1', conversationId: 'conv-1', fromUserId: 'user-2', text: 'Cześć! Widzę, że oferujesz wiertarkę. Czy jest nadal dostępna?', timestamp: '2024-01-28T09:00:00Z', read: true },
+  { id: 'msg-2', conversationId: 'conv-1', fromUserId: 'user-1', text: 'Tak, jest! Kiedy byś jej potrzebował/a?', timestamp: '2024-01-28T09:15:00Z', read: true },
+  { id: 'msg-3', conversationId: 'conv-1', fromUserId: 'user-2', text: 'W sobotę planuję montaż półek. Czy mogłabym pożyczyć ją na weekend?', timestamp: '2024-01-28T09:30:00Z', read: true },
+  { id: 'msg-4', conversationId: 'conv-1', fromUserId: 'user-1', text: 'Oczywiście! Mogę przynieść ją w sobotę rano.', timestamp: '2024-01-28T09:45:00Z', read: true },
+  { id: 'msg-5', conversationId: 'conv-1', fromUserId: 'user-2', text: 'Świetnie! Mogę odebrać wiertarkę w sobotę rano', timestamp: '2024-01-28T10:30:00Z', read: false },
+  
+  { id: 'msg-6', conversationId: 'conv-3', fromUserId: 'user-4', text: 'Cześć! Upiekłam dzisiaj drożdżówki.', timestamp: '2024-01-28T08:00:00Z', read: true },
+  { id: 'msg-7', conversationId: 'conv-3', fromUserId: 'user-1', text: 'Brzmi pysznie! Mogę wpaść?', timestamp: '2024-01-28T08:10:00Z', read: true },
+  { id: 'msg-8', conversationId: 'conv-3', fromUserId: 'user-4', text: 'Drożdżówki są gotowe do odbioru 🥐', timestamp: '2024-01-28T08:15:00Z', read: false },
+];
+
+export const getMessagesForConversation = (conversationId: string): ChatMessage[] => {
+  return chatMessages.filter(m => m.conversationId === conversationId);
 };
 
-export const icebreakerMessages: IcebreakerMessage[] = [
-  { id: 'ice-1', text: 'Hej, mogę w zamian przynieść domową kawę! ☕' },
-  { id: 'ice-2', text: 'Cześć! Kiedy pasuje Ci odbiór?' },
-  { id: 'ice-3', text: 'Chętnie pomogę w ogrodzie w zamian 🌱' },
-];
+export const getConversationWithUser = (conversationId: string, currentUserId: string): Conversation & { otherUser: User; listing: Listing } => {
+  const conv = conversations.find(c => c.id === conversationId)!;
+  const otherUserId = conv.participants.find(p => p !== currentUserId)!;
+  const otherUser = getUserById(otherUserId)!;
+  const listing = getListingById(conv.listingId)!;
+  return { ...conv, otherUser, listing };
+};
 
-// ── Ogłoszenia ────────────────────────────────────────────────────────────────
+export const getUserConversations = (userId: string): Conversation[] => {
+  return conversations.filter(c => c.participants.includes(userId));
+};
 
-export const myListings: Listing[] = [
-  {
-    id: 'lst-1',
-    title: 'Wiertarka udarowa Bosch',
-    image: 'https://images.unsplash.com/photo-1770763233593-74dfd0da7bf0?w=400',
-    status: 'Aktywne',
-    views: 24,
-    interested: 3,
-    category: 'Narzędzia',
-    description:
-      'Wiertarka udarowa Bosch Professional w świetnym stanie, z baterią i ładowarką. Idealna do montażu mebli czy drobnych napraw.',
-    ownerId: 'user-1',
-  },
-  {
-    id: 'lst-2',
-    title: 'Sekator ogrodowy',
-    image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400',
-    status: 'Aktywne',
-    views: 12,
-    interested: 1,
-    category: 'Ogród',
-    description: 'Sekator ogrodowy w dobrym stanie, idealny do przycinania krzewów i drzewek.',
-    ownerId: 'user-1',
-  },
-];
-
-export const pastListings: Listing[] = [
-  {
-    id: 'lst-3',
-    title: 'Drabina aluminiowa',
-    image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400',
-    status: 'Ukończone',
-    completedWith: 'Piotr N.',
-    category: 'Narzędzia',
-    ownerId: 'user-1',
-  },
-];
-
-// ── Prośby o przysługi ────────────────────────────────────────────────────────
+// ── Categories ─────────────────────────────────────────────────────────────────
 
 export const favorCategories: FavorCategory[] = [
-  {
-    id: 'cat-1',
-    label: 'Naprawa',
-    iconName: 'Wrench',
-    gradientFrom: '#7dd3c0',
-    gradientTo: '#a8d5ba',
-    count: 12,
-  },
-  {
-    id: 'cat-2',
-    label: 'Transport',
-    iconName: 'Car',
-    gradientFrom: '#89cff0',
-    gradientTo: '#7dd3c0',
-    count: 8,
-  },
-  {
-    id: 'cat-3',
-    label: 'Edukacja',
-    iconName: 'BookOpen',
-    gradientFrom: '#a8d5ba',
-    gradientTo: '#c2e7d9',
-    count: 15,
-  },
-  {
-    id: 'cat-4',
-    label: 'Dom i Ogród',
-    iconName: 'Home',
-    gradientFrom: '#7dd3c0',
-    gradientTo: '#89cff0',
-    count: 20,
-  },
-  {
-    id: 'cat-5',
-    label: 'Opieka',
-    iconName: 'Heart',
-    gradientFrom: '#b8d8e8',
-    gradientTo: '#89cff0',
-    count: 6,
-  },
-  {
-    id: 'cat-6',
-    label: 'Gotowanie',
-    iconName: 'Utensils',
-    gradientFrom: '#a8d5ba',
-    gradientTo: '#7dd3c0',
-    count: 10,
-  },
+  { id: 'cat-1', label: 'Naprawa', iconName: 'Wrench', gradientFrom: '#7dd3c0', gradientTo: '#a8d5ba' },
+  { id: 'cat-2', label: 'Transport', iconName: 'Car', gradientFrom: '#89cff0', gradientTo: '#7dd3c0' },
+  { id: 'cat-3', label: 'Edukacja', iconName: 'BookOpen', gradientFrom: '#a8d5ba', gradientTo: '#c2e7d9' },
+  { id: 'cat-4', label: 'Dom i Ogród', iconName: 'Home', gradientFrom: '#7dd3c0', gradientTo: '#89cff0' },
+  { id: 'cat-5', label: 'Opieka', iconName: 'Heart', gradientFrom: '#b8d8e8', gradientTo: '#89cff0' },
+  { id: 'cat-6', label: 'Gotowanie', iconName: 'Utensils', gradientFrom: '#a8d5ba', gradientTo: '#7dd3c0' },
+  { id: 'cat-7', label: 'Narzędzia', iconName: 'Wrench', gradientFrom: '#7dd3c0', gradientTo: '#a8d5ba' },
+  { id: 'cat-8', label: 'Ogród', iconName: 'Home', gradientFrom: '#a8d5ba', gradientTo: '#c2e7d9' },
 ];
 
-export const favorRequests: FavorRequest[] = [
-  {
-    id: 'req-1',
-    userId: 'user-2',
-    user: 'Anna K.',
-    initials: 'AK',
-    avatarColor: 'from-[#7dd3c0] to-[#a8d5ba]',
-    request: 'Pomoc w przeprowadzce',
-    time: '2h temu',
-    category: 'Transport',
-  },
-  {
-    id: 'req-2',
-    userId: 'user-3',
-    user: 'Piotr N.',
-    initials: 'PN',
-    avatarColor: 'from-[#89cff0] to-[#7dd3c0]',
-    request: 'Naprawa roweru',
-    time: '5h temu',
-    category: 'Naprawa',
-  },
-  {
-    id: 'req-3',
-    userId: 'user-4',
-    user: 'Ewa W.',
-    initials: 'EW',
-    avatarColor: 'from-[#a8d5ba] to-[#c2e7d9]',
-    request: 'Korepetycje matematyka',
-    time: '1d temu',
-    category: 'Edukacja',
-  },
-  {
-    id: 'req-4',
-    userId: 'user-5',
-    user: 'Marek Z.',
-    initials: 'MZ',
-    avatarColor: 'from-[#7dd3c0] to-[#89cff0]',
-    request: 'Pożyczenie kosiarki',
-    time: '1d temu',
-    category: 'Dom i Ogród',
-  },
-  {
-    id: 'req-5',
-    userId: 'user-6',
-    user: 'Kasia S.',
-    initials: 'KS',
-    avatarColor: 'from-[#b8d8e8] to-[#89cff0]',
-    request: 'Transport mebli',
-    time: '2d temu',
-    category: 'Transport',
-  },
-  {
-    id: 'req-6',
-    userId: 'user-7',
-    user: 'Tomasz K.',
-    initials: 'TK',
-    avatarColor: 'from-[#a8d5ba] to-[#7dd3c0]',
-    request: 'Pomoc w malowaniu',
-    time: '2d temu',
-    category: 'Dom i Ogród',
-  },
-];
-
-// ── Statystyki społeczności ───────────────────────────────────────────────────
+// ── Statistics ────────────────────────────────────────────────────────────────
 
 export const communityStats: CommunityStats = {
   communityHealth: 87,
-  totalExchanges: 142,
+  totalExchanges: listings.filter(l => l.status === 'completed').length,
   impactScore: 12,
 };
 
 export const onboardingData = {
   tagline: 'Buduj lokalną społeczność, dziel się zasobami, redukuj ślad węglowy.',
   stats: [
-    { label: 'Wymień', value: '2.4k+' },
+    { label: 'Wymień', value: `${listings.filter(l => l.status === 'completed').length}+` },
     { label: 'Oszczędź', value: '85%' },
-    { label: 'Połącz', value: '320+' },
+    { label: 'Połącz', value: `${users.length - 1}+` },
   ],
 };
 
-// ── Nawigacja ─────────────────────────────────────────────────────────────────
-
-export const navItems = [
-  { label: 'Home', screen: 'dashboard', iconName: 'Home' },
-  { label: 'Prośby', screen: 'request', iconName: 'Package' },
-  { label: 'Udostępnij', screen: 'listing', iconName: 'Leaf' },
-  { label: 'Wiadomości', screen: 'messages', iconName: 'Mail' },
-  { label: 'Moje Ogłoszenia', screen: 'my-listings', iconName: 'Package' },
-  { label: 'Profil', screen: 'profile', iconName: 'User' },
-] as const;
+// Icebreakers for chat
+export const icebreakerMessages: string[] = [
+  'Hej, mogę w zamian przynieść domową kawę! ☕',
+  'Cześć! Kiedy pasuje Ci odbiór?',
+  'Chętnie pomogę w ogrodzie w zamian 🌱',
+];

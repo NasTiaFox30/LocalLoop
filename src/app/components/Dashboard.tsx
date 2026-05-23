@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Leaf, Activity, Heart, MessageCircle, Mail } from 'lucide-react';
-import { activityFeed, communityStats, currentUser } from '../../data/appData';
+import { currentUser, communityStats, getActivityFeed, getUserById, getListingById, getActionText, timeAgo } from '../../data/appData';
 
 // Legacy prop kept for backward compat when used via AdaptivePage
 interface DashboardProps { onNavigate?: (s: string) => void; }
@@ -13,6 +13,8 @@ export default function Dashboard(_props: DashboardProps) {
   const toggleLike = (id: string) => {
     setLikedItems((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
   };
+
+  const activityFeed = useMemo(() => getActivityFeed(), []);
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
