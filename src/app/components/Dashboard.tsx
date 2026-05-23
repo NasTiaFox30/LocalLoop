@@ -86,38 +86,45 @@ export default function Dashboard(_props: DashboardProps) {
             <Activity className="w-5 h-5 text-[#7dd3c0]" />
           </div>
           <div className="space-y-3">
-            {activityFeed.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => navigate('/listing-detail')}
-                className="flex items-start gap-3 p-4 rounded-2xl backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 hover:border-[#7dd3c0]/25 transition-all duration-300 group cursor-pointer"
-              >
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${item.avatarColor} flex items-center justify-center flex-shrink-0 shadow-md`}>
-                  <span className="text-sm font-medium text-[#1e2026]">{item.initials}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[#f5f3ed]">
-                    <span className="font-medium text-[#7dd3c0]">{item.user}</span>{' '}{item.action}
-                  </p>
-                  <p className="text-xs text-[#b8b5ad] mt-1">{item.time}</p>
-                  <div className="flex gap-3 mt-2">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }}
-                      className={`flex items-center gap-1 text-xs transition-all duration-300 ${likedItems.includes(item.id) ? 'text-[#7dd3c0]' : 'text-[#b8b5ad] hover:text-[#7dd3c0]'}`}
-                    >
-                      <Heart className={`w-3.5 h-3.5 transition-all duration-300 ${likedItems.includes(item.id) ? 'fill-[#7dd3c0]' : ''}`} />
-                      <span>{item.likes + (likedItems.includes(item.id) ? 1 : 0)}</span>
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); navigate('/messages'); }}
-                      className="flex items-center gap-1 text-xs text-[#b8b5ad] hover:text-[#7dd3c0] transition-colors"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5" />
-                    </button>
+            {activityFeed.map((item) => {
+              const user = getUserById(item.userId);
+              const listing = getListingById(item.listingId);
+              if (!user || !listing) return null;
+              
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => navigate('/listing-detail', { state: { listingId: item.listingId } })}
+                  className="flex items-start gap-3 p-4 rounded-2xl backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 hover:border-[#7dd3c0]/25 transition-all duration-300 group cursor-pointer"
+                >
+                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${user.avatarColor} flex items-center justify-center flex-shrink-0 shadow-md`}>
+                    <span className="text-sm font-medium text-[#1e2026]">{user.initials}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-[#f5f3ed]">
+                      <span className="font-medium text-[#7dd3c0]">{user.name}</span>{' '}
+                      {getActionText(item.action, listing, user)}
+                    </p>
+                    <p className="text-xs text-[#b8b5ad] mt-1">{timeAgo(item.timestamp)}</p>
+                    <div className="flex gap-3 mt-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }}
+                        className={`flex items-center gap-1 text-xs transition-all duration-300 ${likedItems.includes(item.id) ? 'text-[#7dd3c0]' : 'text-[#b8b5ad] hover:text-[#7dd3c0]'}`}
+                      >
+                        <Heart className={`w-3.5 h-3.5 transition-all duration-300 ${likedItems.includes(item.id) ? 'fill-[#7dd3c0]' : ''}`} />
+                        <span>{item.likes + (likedItems.includes(item.id) ? 1 : 0)}</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate('/messages'); }}
+                        className="flex items-center gap-1 text-xs text-[#b8b5ad] hover:text-[#7dd3c0] transition-colors"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
