@@ -78,9 +78,11 @@ export default function MyListings() {
                   </div>
                   <div className="flex-1 py-3 pr-4">
                     <h4 className="font-medium text-[#f5f3ed] mb-2">{item.title}</h4>
-                    <div className="text-xs text-[#b8b5ad] mb-2">
-                      Wymieniono z: <span className="text-[#7dd3c0]">{item.completedWith}</span>
-                    </div>
+                    {item.completedWith && (
+                      <div className="text-xs text-[#b8b5ad] mb-2">
+                        Wymieniono z: <span className="text-[#7dd3c0]">{item.completedWith}</span>
+                      </div>
+                    )}
                     <div>
                       <span className="px-3 py-1 rounded-full bg-[rgba(60,65,75,0.5)] border border-[#b8b5ad]/20 text-xs text-[#b8b5ad]">
                         {item.status}
