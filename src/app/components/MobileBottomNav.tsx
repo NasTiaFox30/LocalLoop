@@ -3,8 +3,8 @@ import { Home, Package, Leaf, Mail, User } from 'lucide-react';
 
 const mobileNavItems = [
   { icon: Home,    label: 'Home',        path: '/dashboard' },
-  { icon: Package, label: 'Prośby',      path: '/request' },
-  { icon: Leaf,    label: 'Udostępnij',  path: '/listing' },
+  { icon: Package, label: 'Prośby',      path: '/request-help' },
+  { icon: Leaf,    label: 'Udostępnij',  path: '/request-favor' },
   { icon: Mail,    label: 'Wiadomości',  path: '/messages' },
   { icon: User,    label: 'Profil',      path: '/profile' },
 ];

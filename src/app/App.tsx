@@ -14,8 +14,6 @@ import DesktopRequestFavor from './components/DesktopRequestFavor';
 import RequestFavor from './components/RequestFavor';
 import DesktopRequestHelp from './components/DesktopRequestHelp';
 import RequestHelp from './components/RequestHelp';
-import DesktopListingCreator from './components/DesktopListingCreator';
-import ListingCreator from './components/ListingCreator';
 import DesktopMessages from './components/DesktopMessages';
 import MessagesInbox from './components/MessagesInbox';
 import DesktopUserProfile from './components/DesktopUserProfile';
@@ -28,6 +26,9 @@ import DesktopDetailDrawer from './components/DesktopDetailDrawer';
 import DetailDrawer from './components/DetailDrawer';
 import SmartChat from './components/SmartChat';
 import DesktopCreateHelpRequest from './components/DesktopCreateHelpRequest';
+import DesktopCreateFavorRequest from './components/DesktopCreateFavorRequest';
+import CreateFavorRequest from './components/CreateFavorRequest';
+import CreateHelpRequest from './components/CreateHelpRequest';
 import { ConversationsProvider} from '../contexts/ConversationsContext';
 
 // Routes that show the main app chrome (sidebar + bottom nav)
@@ -118,15 +119,25 @@ export default function App() {
             element={
               <AdaptivePage
                 mobile={<RequestHelp />}
+                desktop={<DesktopRequestHelp onOpenDetail={handleOpenDetail} />}
               />
             }
           />
           <Route
-            path="/listing"
+            path="/create-help-request"
             element={
               <AdaptivePage
-                mobile={<ListingCreator onNavigate={() => {}} />}
-                desktop={<DesktopListingCreator onNavigate={() => {}} />}
+                mobile={<CreateHelpRequest />}
+                desktop={<DesktopCreateHelpRequest />}
+              />
+            }
+          />
+          <Route
+            path="/create-favor-request"
+            element={
+              <AdaptivePage
+                mobile={<CreateFavorRequest />}
+                desktop={<DesktopCreateFavorRequest />}
               />
             }
           />

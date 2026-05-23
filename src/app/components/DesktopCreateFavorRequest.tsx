@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { Camera, Sparkles, Check, Repeat, Star } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 
-interface DesktopListingCreatorProps {
+interface DesktopCreateFavorRequestProps {
 }
 
-export default function DesktopListingCreator({}: DesktopListingCreatorProps) {
+export default function DesktopCreateFavorRequest({}: DesktopCreateFavorRequestProps) {
   const navigate = useNavigate();
   const [imageUploaded, setImageUploaded] = useState(false);
 
