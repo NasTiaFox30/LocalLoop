@@ -34,16 +34,16 @@ export default function MessagesInbox() {
         </div>
 
         <div className="space-y-3">
-          {conversations.map((conv, idx) => (
+          {conversations.map((conv) => (
             <button
-              key={idx}
-              onClick={() => navigate('/chat')}
+              key={conv.id}
+              onClick={() => navigate('/messages/chat')}
               className={`w-full backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border ${
                 conv.unread ? 'border-[#7dd3c0]/30' : 'border-[#7dd3c0]/10'
               } rounded-2xl p-4 hover:border-[#7dd3c0]/40 transition-all duration-300 flex items-start gap-3`}
             >
               <div className="relative">
-                <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${conv.color} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${conv.avatarColor} flex items-center justify-center shadow-lg flex-shrink-0`}>
                   <span className="text-sm font-medium text-[#1e2026]">{conv.initials}</span>
                 </div>
                 {conv.unread && (
