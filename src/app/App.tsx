@@ -79,6 +79,7 @@ export default function App() {
   };
 
   return (
+    <ConversationsProvider>
     <div className="size-full min-h-screen bg-[#2a2d35]">
       {/* Desktop sidebar – only visible on app routes */}
       {isAppRoute && <DesktopSidebar />}
@@ -197,5 +198,6 @@ export default function App() {
         item={selectedItem}
       />
     </div>
+    </ConversationsProvider>
   );
 }
