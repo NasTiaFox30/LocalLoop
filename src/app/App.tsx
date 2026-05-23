@@ -101,7 +101,7 @@ export default function App() {
             }
           />
           <Route
-            path="/request"
+            path="/request-favor"
             element={
               <AdaptivePage
                 mobile={<RequestFavor onNavigate={() => {}} />}
