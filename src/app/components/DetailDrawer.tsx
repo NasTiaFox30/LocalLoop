@@ -19,6 +19,7 @@ export default function DetailDrawer() {
   }
 
   const isOffer = listing.listingType === 'offer';
+  const isOwnListing = owner.id === currentUser.id;
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex flex-col pb-20">
