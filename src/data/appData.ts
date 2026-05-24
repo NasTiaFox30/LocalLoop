@@ -373,21 +373,6 @@ export const listings: Listing[] = [
     suggestedBarter: 'Domowe ciasto + 30 punktów',
     suggestedPoints: 70,
   },
-  {
-    id: 'req-6',
-    ownerId: 'user-7',
-    title: 'Pomoc w malowaniu pokoju',
-    description: 'Ktoś pomoże mi pomalować pokój? Sam nie dam rady.',
-    image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400',
-    status: 'active',
-    category: 'Dom i Ogród',
-    createdAt: '2024-01-28T10:00:00Z',
-    views: 25,
-    interestedCount: 3,
-    listingType: 'request',
-    suggestedBarter: 'Domowe jedzenie + pomoc w ogrodzie',
-    suggestedPoints: 90,
-  },
 ];
 
 // Helper functions for listings
