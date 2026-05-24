@@ -22,6 +22,11 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
   const isSelfChat = ownerId === currentUser.id;
 
   useEffect(() => {
+    if (isSelfChat) {
+      setCurrentConversation(null);
+      return;
+    }
+
     if (conversationId) {
       const found = conversations.find(c => c.id === conversationId);
       if (found) {
@@ -29,7 +34,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
       } else {
         setCurrentConversation(null);
       }
-    } else if (listingId && ownerId) {
+    } else if (listingId && ownerId && !isSelfChat) {
       const found = conversations.find(
         c => c.listingId === listingId && c.participants.includes(ownerId)
       );
@@ -43,7 +48,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
     } else {
       setCurrentConversation(null);
     }
-  }, [conversationId, listingId, ownerId, conversations, addConversation]);
+  }, [conversationId, listingId, ownerId, conversations, addConversation, isSelfChat]);
 
   // Pobieranie danych zależnych od currentConversation
   const listing = currentConversation 
