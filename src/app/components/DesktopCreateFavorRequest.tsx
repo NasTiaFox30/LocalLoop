@@ -10,9 +10,23 @@ interface DesktopCreateFavorRequestProps {
 
 export default function DesktopCreateFavorRequest({}: DesktopCreateFavorRequestProps) {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [imageUploaded, setImageUploaded] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState(favorCategories[0].label);
+  const [suggestedBarter, setSuggestedBarter] = useState('');
+  const [suggestedPoints, setSuggestedPoints] = useState<number>(50);
+  const [availability, setAvailability] = useState('Dostępne od zaraz');
+
+  const categories = favorCategories.map(c => c.label);
+  const uniqueCategories = [...new Set(categories)];
 
   const handleImageClick = () => {
+    const demoImageUrl = 'https://images.unsplash.com/photo-1770763233593-74dfd0da7bf0?w=800';
+    setImageUrl(demoImageUrl);
     setImageUploaded(true);
   };
 
