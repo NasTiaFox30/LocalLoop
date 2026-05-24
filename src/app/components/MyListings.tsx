@@ -202,7 +202,7 @@ export default function MyListings() {
           <div className="text-center py-12">
             <p className="text-[#b8b5ad]">Nie masz jeszcze żadnych ogłoszeń</p>
             <button
-              onClick={() => navigate('/listing')}
+              onClick={() => setShowTypeModal(true)}
               className="mt-4 px-6 py-3 bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium rounded-2xl"
             >
               Dodaj pierwsze ogłoszenie
