@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Eye, Users } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, Clock, Eye, Users, Trash2, CheckCircle, X, Plus, HandHelping, ListTodo } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { currentUser, getActiveListingsByUser, getCompletedListingsByUser, getUserById } from '../../data/appData';
 
