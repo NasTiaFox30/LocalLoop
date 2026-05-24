@@ -55,7 +55,7 @@ export default function DesktopMyListings() {
             <p className="text-sm text-[#b8b5ad]">{activeListings.length} aktywne ogłoszenia</p>
           </div>
           <button
-            onClick={() => navigate('/listing')}
+            onClick={handleCreateNew}
             className="px-6 py-3 bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 hover:scale-105 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center gap-2"
           >
             <Plus className="w-5 h-5" />
