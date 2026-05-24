@@ -44,10 +44,10 @@ export default function SmartChat() {
 
   // Створюємо нову розмову лише тоді, коли її дійсно немає
   useEffect(() => {
-    if (!conversation && listing && otherUser) {
+    if (!conversation && listing && otherUser && !isSelfChat) {
       addConversation(listing.id, otherUser.id);
     }
-  }, [conversation, listing, otherUser, addConversation]);
+  }, [conversation, listing, otherUser, addConversation, isSelfChat]);
 
   const messages = conversation ? getMessagesForConversation(conversation.id) : [];
 
