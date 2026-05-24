@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { Camera, Sparkles, Check, Repeat, Star } from 'lucide-react';
+import { Camera, Check, ArrowLeft, Loader2, Wand2 } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 
 interface DesktopCreateFavorRequestProps {
