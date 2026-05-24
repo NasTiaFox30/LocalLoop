@@ -119,6 +119,13 @@ export default function MyListings() {
                         alt={item.title}
                         className="w-full h-full object-cover"
                       />
+                      <span className={`absolute top-1 left-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                        item.listingType === 'offer' 
+                          ? 'bg-[#7dd3c0] text-[#1e2026]'
+                          : 'bg-[#89cff0] text-[#1e2026]'
+                      }`}>
+                        {item.listingType === 'offer' ? 'O' : 'P'}
+                      </span>
                     </div>
                     <div className="flex-1 py-3 pr-4">
                       <h4 className="font-medium text-[#f5f3ed] mb-2">{item.title}</h4>
@@ -127,10 +134,19 @@ export default function MyListings() {
                         <span>•</span>
                         <span className="flex items-center gap-1 text-[#7dd3c0]"><Users className="w-3 h-3" /> {item.interestedCount}</span>
                       </div>
-                      <div className="mt-2">
-                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#7dd3c0]/20 to-[#a8d5ba]/10 border border-[#7dd3c0]/30 text-xs text-[#7dd3c0]">
-                          {item.status === 'active' ? 'Aktywne' : item.status}
-                        </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setShowCompleteConfirm(item.id)}
+                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] text-xs font-medium flex items-center gap-1"
+                        >
+                          <CheckCircle className="w-3 h-3" /> Zakończ
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(item.id)}
+                          className="px-3 py-1.5 rounded-xl bg-[rgba(232,141,141,0.2)] border border-[#e88d8d]/40 text-[#e88d8d] text-xs font-medium flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" /> Usuń
+                        </button>
                       </div>
                     </div>
                   </div>
