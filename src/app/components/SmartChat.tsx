@@ -15,6 +15,14 @@ export default function SmartChat() {
   const listingId = location.state?.listingId;
   const ownerId = location.state?.ownerId;
 
+  // Zabezpieczenie: jeśli ownerId to aktualny użytkownik, przekieruj
+  useEffect(() => {
+    if (ownerId && ownerId === currentUser.id) {
+      // Nie można czatować samemu ze sobą
+      navigate('/messages', { replace: true });
+    }
+  }, [ownerId, navigate]);
+
   // Отримуємо розмову напряму з контексту на основі пропсів
   const conversation = conversationId 
     ? conversations.find(c => c.id === conversationId)
