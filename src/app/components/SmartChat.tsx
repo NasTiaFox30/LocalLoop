@@ -39,6 +39,9 @@ export default function SmartChat() {
     ? getUserById(conversation.participants.find(p => p !== currentUser.id)!)
     : (ownerId ? getUserById(ownerId) : null);
 
+  // Sprawdzenie czy to rozmowa z samym sobą
+  const isSelfChat = otherUser?.id === currentUser.id;
+
   // Створюємо нову розмову лише тоді, коли її дійсно немає
   useEffect(() => {
     if (!conversation && listing && otherUser) {
