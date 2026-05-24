@@ -2,7 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Clock, Eye, Users, Plus, Trash2, CheckCircle, X, ListTodo, HandHelping } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { currentUser, getActiveListingsByUser, getCompletedListingsByUser, getUserById } from '../../data/appData';
+import { currentUser, getActiveListingsByUser, getCompletedListingsByUser, getUserById, deleteListing, completeListing } from '../../data/appData';
+import type { Listing } from '../../data/appData';
 
 export default function DesktopMyListings() {
   const navigate = useNavigate();
