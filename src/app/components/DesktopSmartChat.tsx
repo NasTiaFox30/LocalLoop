@@ -72,7 +72,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
   ];
 
   const handleSendMessage = (text: string) => {
-    if (!text.trim() || !currentConversation) return;
+    if (!text.trim() || !currentConversation || isSelfChat) return;
     addMessage(currentConversation.id, text);
     setInputValue('');
   };
