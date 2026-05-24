@@ -62,6 +62,46 @@ export default function MyListings() {
           </button>
         </header>
 
+        {/* Modal wyboru typu */}
+        {showTypeModal && (
+          <div className="fixed inset-0 bg-[rgba(42,45,53,0.95)] backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-gradient-to-br from-[rgba(60,65,75,0.95)] to-[rgba(50,55,65,0.95)] border border-[#7dd3c0]/20 rounded-3xl p-6 w-full shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-medium text-[#f5f3ed]">Wybierz typ</h2>
+                <button onClick={() => setShowTypeModal(false)} className="w-10 h-10 rounded-xl bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center">
+                  <X className="w-5 h-5 text-[#7dd3c0]" />
+                </button>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleSelectType('offer')}
+                  className="w-full backdrop-blur-md bg-gradient-to-r from-[#7dd3c0]/15 to-[#a8d5ba]/10 border border-[#7dd3c0]/25 rounded-2xl p-5 flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center">
+                    <HandHelping className="w-6 h-6 text-[#1e2026]" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-medium text-[#f5f3ed]">Oferta</h3>
+                    <p className="text-xs text-[#b8b5ad]">Udostępnij przedmiot</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleSelectType('request')}
+                  className="w-full backdrop-blur-md bg-gradient-to-r from-[#89cff0]/15 to-[#b8d8e8]/10 border border-[#89cff0]/25 rounded-2xl p-5 flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#89cff0] to-[#b8d8e8] flex items-center justify-center">
+                    <ListTodo className="w-6 h-6 text-[#1e2026]" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-medium text-[#f5f3ed]">Prośba</h3>
+                    <p className="text-xs text-[#b8b5ad]">Poproś o pomoc</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Active listings */}
         {activeListings.length > 0 && (
           <div className="mb-6">
