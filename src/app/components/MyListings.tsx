@@ -100,7 +100,7 @@ export default function MyListings() {
           </div>
         )}
 
-        {/* Past listings */}
+        {/* Completed listings */}
         {completedListings.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Zakończone</h3>
