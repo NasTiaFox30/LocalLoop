@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Camera, Check, ArrowLeft, Loader2, Wand2 } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
+import { currentUser, addListing, favorCategories } from '../../data/appData';
+import { generateRandomOfferContent } from '../../data/textsAI_templates';
 
 interface DesktopCreateFavorRequestProps {
 }
