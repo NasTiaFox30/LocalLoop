@@ -1,12 +1,50 @@
 import { useNavigate } from 'react-router-dom';
-import { Clock, Eye, Users, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { Clock, Eye, Users, Plus, Trash2, CheckCircle, X, ListTodo, HandHelping } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { currentUser, getActiveListingsByUser, getCompletedListingsByUser, getUserById } from '../../data/appData';
+import { currentUser, getActiveListingsByUser, getCompletedListingsByUser, getUserById, deleteListing, completeListing } from '../../data/appData';
+import type { Listing } from '../../data/appData';
 
 export default function DesktopMyListings() {
   const navigate = useNavigate();
-  const activeListings = getActiveListingsByUser(currentUser.id);
-  const completedListings = getCompletedListingsByUser(currentUser.id);
+  const [activeListings, setActiveListings] = useState<Listing[]>(() => getActiveListingsByUser(currentUser.id));
+  const [completedListings, setCompletedListings] = useState<Listing[]>(() => getCompletedListingsByUser(currentUser.id));
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState<string | null>(null);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+
+  const refreshListings = () => {
+    setActiveListings(getActiveListingsByUser(currentUser.id));
+    setCompletedListings(getCompletedListingsByUser(currentUser.id));
+  };
+
+  const handleDelete = (listingId: string) => {
+    deleteListing(listingId);
+    refreshListings();
+    setShowDeleteConfirm(null);
+  };
+
+  const handleComplete = (listingId: string) => {
+    // W przyszłości: wybór użytkownika, z którym dokonano wymiany
+    // Na razie symulujemy wybór pierwszego innego użytkownika
+    const otherUserId = 'user-2';
+    completeListing(listingId, otherUserId);
+    refreshListings();
+    setShowCompleteConfirm(null);
+  };
+
+  const handleCreateNew = () => {
+    setShowTypeModal(true);
+  };
+
+  const handleSelectType = (type: 'offer' | 'request') => {
+    setShowTypeModal(false);
+    if (type === 'offer') {
+      navigate('/create-favor-request');
+    } else {
+      navigate('/create-help-request');
+    }
+  };
 
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
@@ -17,13 +55,53 @@ export default function DesktopMyListings() {
             <p className="text-sm text-[#b8b5ad]">{activeListings.length} aktywne ogłoszenia</p>
           </div>
           <button
-            onClick={() => navigate('/listing')}
+            onClick={handleCreateNew}
             className="px-6 py-3 bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 hover:scale-105 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center gap-2"
           >
             <Plus className="w-5 h-5" />
             Dodaj Nowe
           </button>
         </header>
+
+        {/* Modal wyboru typu ogłoszenia */}
+        {showTypeModal && (
+          <div className="fixed inset-0 bg-[rgba(42,45,53,0.9)] backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gradient-to-br from-[rgba(60,65,75,0.95)] to-[rgba(50,55,65,0.95)] border border-[#7dd3c0]/20 rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-medium text-[#f5f3ed]">Wybierz typ ogłoszenia</h2>
+                <button onClick={() => setShowTypeModal(false)} className="w-10 h-10 rounded-xl bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40">
+                  <X className="w-5 h-5 text-[#7dd3c0]" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <button
+                  onClick={() => handleSelectType('offer')}
+                  className="w-full backdrop-blur-md bg-gradient-to-r from-[#7dd3c0]/15 to-[#a8d5ba]/10 border border-[#7dd3c0]/25 rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300 flex items-center gap-4"
+                >
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center">
+                    <HandHelping className="w-7 h-7 text-[#1e2026]" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-medium text-[#f5f3ed] text-lg">Oferta</h3>
+                    <p className="text-sm text-[#b8b5ad]">Udostępnij przedmiot lub usługę sąsiadom</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleSelectType('request')}
+                  className="w-full backdrop-blur-md bg-gradient-to-r from-[#89cff0]/15 to-[#b8d8e8]/10 border border-[#89cff0]/25 rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300 flex items-center gap-4"
+                >
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#89cff0] to-[#b8d8e8] flex items-center justify-center">
+                    <ListTodo className="w-7 h-7 text-[#1e2026]" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-medium text-[#f5f3ed] text-lg">Prośba</h3>
+                    <p className="text-sm text-[#b8b5ad]">Poproś sąsiadów o pomoc</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           {activeListings.length > 0 && (
@@ -41,10 +119,31 @@ export default function DesktopMyListings() {
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
-                      <div className="absolute top-3 right-3">
-                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-xs font-medium text-[#1e2026] shadow-lg">
-                          Aktywne
+                      <div className="absolute top-3 right-3 flex gap-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium shadow-lg ${
+                          item.listingType === 'offer' 
+                            ? 'bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026]'
+                            : 'bg-gradient-to-r from-[#89cff0] to-[#7dd3c0] text-[#1e2026]'
+                        }`}>
+                          {item.listingType === 'offer' ? 'Oferta' : 'Prośba'}
                         </span>
+                      </div>
+                      {/* Action buttons overlay */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+                        <button
+                          onClick={() => setShowCompleteConfirm(item.id)}
+                          className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg"
+                          title="Oznacz jako zakończone"
+                        >
+                          <CheckCircle className="w-6 h-6 text-[#1e2026]" />
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(item.id)}
+                          className="w-12 h-12 rounded-full bg-gradient-to-br from-[#e88d8d] to-[#c96b6b] flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg"
+                          title="Usuń ogłoszenie"
+                        >
+                          <Trash2 className="w-6 h-6 text-white" />
+                        </button>
                       </div>
                     </div>
                     <div className="p-4">
@@ -109,7 +208,7 @@ export default function DesktopMyListings() {
             <div className="text-center py-12">
               <p className="text-[#b8b5ad]">Nie masz jeszcze żadnych ogłoszeń</p>
               <button
-                onClick={() => navigate('/listing')}
+                onClick={handleCreateNew}
                 className="mt-4 px-6 py-3 bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium rounded-2xl"
               >
                 Dodaj pierwsze ogłoszenie
@@ -118,6 +217,58 @@ export default function DesktopMyListings() {
           )}
         </div>
       </div>
+
+      {/* Modal potwierdzenia usunięcia */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-[rgba(42,45,53,0.9)] backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-[rgba(60,65,75,0.95)] to-[rgba(50,55,65,0.95)] border border-[#e88d8d]/30 rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <h2 className="text-xl font-medium text-[#f5f3ed] mb-4">Usuń ogłoszenie?</h2>
+            <p className="text-sm text-[#b8b5ad] mb-6">Tej akcji nie można cofnąć. Ogłoszenie zostanie trwale usunięte.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="flex-1 px-4 py-3 rounded-xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 text-[#f5f3ed] hover:border-[#7dd3c0]/40 transition-all duration-300"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={() => handleDelete(showDeleteConfirm)}
+                className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#e88d8d] to-[#c96b6b] text-white font-medium hover:shadow-xl transition-all duration-300"
+              >
+                Usuń
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal potwierdzenia zakończenia */}
+      {showCompleteConfirm && (
+        <div className="fixed inset-0 bg-[rgba(42,45,53,0.9)] backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-[rgba(60,65,75,0.95)] to-[rgba(50,55,65,0.95)] border border-[#7dd3c0]/30 rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <h2 className="text-xl font-medium text-[#f5f3ed] mb-4">Oznacz jako zakończone?</h2>
+            <p className="text-sm text-[#b8b5ad] mb-6">
+              Po oznaczeniu ogłoszenia jako zakończonego, przyznasz punkty społecznościowe osobie, która pomogła.
+              <br /><br />
+              <span className="text-[#7dd3c0]">W przyszłości: tutaj wybierzesz osobę, z którą dokonano wymiany.</span>
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCompleteConfirm(null)}
+                className="flex-1 px-4 py-3 rounded-xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 text-[#f5f3ed] hover:border-[#7dd3c0]/40 transition-all duration-300"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={() => handleComplete(showCompleteConfirm)}
+                className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium hover:shadow-xl transition-all duration-300"
+              >
+                Potwierdź
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

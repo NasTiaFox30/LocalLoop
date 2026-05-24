@@ -373,21 +373,6 @@ export const listings: Listing[] = [
     suggestedBarter: 'Domowe ciasto + 30 punktów',
     suggestedPoints: 70,
   },
-  {
-    id: 'req-6',
-    ownerId: 'user-7',
-    title: 'Pomoc w malowaniu pokoju',
-    description: 'Ktoś pomoże mi pomalować pokój? Sam nie dam rady.',
-    image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400',
-    status: 'active',
-    category: 'Dom i Ogród',
-    createdAt: '2024-01-28T10:00:00Z',
-    views: 25,
-    interestedCount: 3,
-    listingType: 'request',
-    suggestedBarter: 'Domowe jedzenie + pomoc w ogrodzie',
-    suggestedPoints: 90,
-  },
 ];
 
 // Helper functions for listings
@@ -414,6 +399,91 @@ export const getCompletedListingsByUser = (userId: string): Listing[] => {
 export const getListingById = (id: string): Listing | undefined => {
   return listings.find(l => l.id === id);
 };
+
+// ── Listings CRUD operations ─────────────────────────────────────────────────
+
+// Dodawanie nowego ogłoszenia
+export const addListing = (listing: Omit<Listing, 'id' | 'createdAt' | 'views' | 'interestedCount'>): Listing => {
+  const newListing: Listing = {
+    ...listing,
+    id: `lst-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+    createdAt: new Date().toISOString(),
+    views: 0,
+    interestedCount: 0,
+  };
+  
+  // W rzeczywistej aplikacji byłby to API call
+  // Na potrzeby demo, dodajemy do lokalnej tablicy
+  listings.push(newListing);
+  
+  // Zapisujemy do localStorage dla trwałości
+  const storedListings = localStorage.getItem('localLoop_listings');
+  if (storedListings) {
+    const parsed = JSON.parse(storedListings);
+    parsed.push(newListing);
+    localStorage.setItem('localLoop_listings', JSON.stringify(parsed));
+  } else {
+    localStorage.setItem('localLoop_listings', JSON.stringify(listings));
+  }
+  
+  return newListing;
+};
+
+// Usuwanie ogłoszenia
+export const deleteListing = (listingId: string): boolean => {
+  const index = listings.findIndex(l => l.id === listingId);
+  if (index === -1) return false;
+  
+  listings.splice(index, 1);
+  
+  // Aktualizujemy localStorage
+  localStorage.setItem('localLoop_listings', JSON.stringify(listings));
+  return true;
+};
+
+// Oznaczanie ogłoszenia jako zakończone
+export const completeListing = (listingId: string, completedWithUserId: string): Listing | null => {
+  const listing = listings.find(l => l.id === listingId);
+  if (!listing) return null;
+  
+  listing.status = 'completed';
+  listing.completedWithUserId = completedWithUserId;
+  listing.completedAt = new Date().toISOString();
+  const completedWithUser = users.find(u => u.id === completedWithUserId);
+  listing.completedWith = completedWithUser?.name;
+  
+  // Aktualizujemy localStorage
+  localStorage.setItem('localLoop_listings', JSON.stringify(listings));
+  
+  return listing;
+};
+
+// Aktualizacja ogłoszenia
+export const updateListing = (listingId: string, updates: Partial<Listing>): Listing | null => {
+  const listing = listings.find(l => l.id === listingId);
+  if (!listing) return null;
+  
+  Object.assign(listing, updates);
+  localStorage.setItem('localLoop_listings', JSON.stringify(listings));
+  
+  return listing;
+};
+
+// Inicjalizacja localStorage z początkowymi danymi
+export const initializeListings = () => {
+  const stored = localStorage.getItem('localLoop_listings');
+  if (!stored) {
+    localStorage.setItem('localLoop_listings', JSON.stringify(listings));
+  } else {
+    // Jeśli istnieją dane w localStorage, ładujemy je do pamięci
+    const storedListings = JSON.parse(stored);
+    listings.length = 0;
+    listings.push(...storedListings);
+  }
+};
+
+// Wywołaj inicjalizację
+initializeListings();
 
 // ── Activity Feed (generated from listings and interactions) ──────────────────
 

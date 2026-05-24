@@ -1,12 +1,44 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Eye, Users } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, Clock, Eye, Users, Trash2, CheckCircle, X, Plus, HandHelping, ListTodo } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { currentUser, getActiveListingsByUser, getCompletedListingsByUser, getUserById } from '../../data/appData';
+import { currentUser, getActiveListingsByUser, getCompletedListingsByUser, getUserById, deleteListing, completeListing } from '../../data/appData';
+import type { Listing } from '../../data/appData';
 
 export default function MyListings() {
   const navigate = useNavigate();
-  const activeListings = getActiveListingsByUser(currentUser.id);
-  const completedListings = getCompletedListingsByUser(currentUser.id);
+  const [activeListings, setActiveListings] = useState<Listing[]>(() => getActiveListingsByUser(currentUser.id));
+  const [completedListings, setCompletedListings] = useState<Listing[]>(() => getCompletedListingsByUser(currentUser.id));
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState<string | null>(null);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+
+  const refreshListings = () => {
+    setActiveListings(getActiveListingsByUser(currentUser.id));
+    setCompletedListings(getCompletedListingsByUser(currentUser.id));
+  };
+
+  const handleDelete = (listingId: string) => {
+    deleteListing(listingId);
+    refreshListings();
+    setShowDeleteConfirm(null);
+  };
+
+  const handleComplete = (listingId: string) => {
+    const otherUserId = 'user-2';
+    completeListing(listingId, otherUserId);
+    refreshListings();
+    setShowCompleteConfirm(null);
+  };
+
+  const handleSelectType = (type: 'offer' | 'request') => {
+    setShowTypeModal(false);
+    if (type === 'offer') {
+      navigate('/create-favor-request');
+    } else {
+      navigate('/create-help-request');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
@@ -18,11 +50,57 @@ export default function MyListings() {
           >
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="font-medium text-[#f5f3ed]">Moje Ogłoszenia</h1>
             <p className="text-sm text-[#b8b5ad]">{activeListings.length} aktywne</p>
           </div>
+          <button
+            onClick={() => setShowTypeModal(true)}
+            className="w-11 h-11 rounded-2xl bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-lg"
+          >
+            <Plus className="w-5 h-5 text-[#1e2026]" />
+          </button>
         </header>
+
+        {/* Modal wyboru typu */}
+        {showTypeModal && (
+          <div className="fixed inset-0 bg-[rgba(42,45,53,0.95)] backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-gradient-to-br from-[rgba(60,65,75,0.95)] to-[rgba(50,55,65,0.95)] border border-[#7dd3c0]/20 rounded-3xl p-6 w-full shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-medium text-[#f5f3ed]">Wybierz typ</h2>
+                <button onClick={() => setShowTypeModal(false)} className="w-10 h-10 rounded-xl bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center">
+                  <X className="w-5 h-5 text-[#7dd3c0]" />
+                </button>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleSelectType('offer')}
+                  className="w-full backdrop-blur-md bg-gradient-to-r from-[#7dd3c0]/15 to-[#a8d5ba]/10 border border-[#7dd3c0]/25 rounded-2xl p-5 flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center">
+                    <HandHelping className="w-6 h-6 text-[#1e2026]" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-medium text-[#f5f3ed]">Oferta</h3>
+                    <p className="text-xs text-[#b8b5ad]">Udostępnij przedmiot</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleSelectType('request')}
+                  className="w-full backdrop-blur-md bg-gradient-to-r from-[#89cff0]/15 to-[#b8d8e8]/10 border border-[#89cff0]/25 rounded-2xl p-5 flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#89cff0] to-[#b8d8e8] flex items-center justify-center">
+                    <ListTodo className="w-6 h-6 text-[#1e2026]" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-medium text-[#f5f3ed]">Prośba</h3>
+                    <p className="text-xs text-[#b8b5ad]">Poproś o pomoc</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Active listings */}
         {activeListings.length > 0 && (
@@ -32,27 +110,43 @@ export default function MyListings() {
               {activeListings.map((item) => (
                 <div
                   key={item.id}
-                  className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl overflow-hidden shadow-xl hover:border-[#7dd3c0]/30 transition-all duration-300 cursor-pointer"
+                  className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl overflow-hidden shadow-xl"
                 >
                   <div className="flex gap-4">
-                    <div className="w-24 h-24 flex-shrink-0">
+                    <div className="w-24 h-auto flex-shrink-0 relative">
                       <ImageWithFallback
                         src={item.image}
                         alt={item.title}
                         className="w-full h-full object-cover"
                       />
+                      <span className={`absolute top-1 left-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                        item.listingType === 'offer' 
+                          ? 'bg-[#7dd3c0] text-[#1e2026]'
+                          : 'bg-[#89cff0] text-[#1e2026]'
+                      }`}>
+                        {item.listingType === 'offer' ? 'O' : 'P'}
+                      </span>
                     </div>
                     <div className="flex-1 py-3 pr-4">
                       <h4 className="font-medium text-[#f5f3ed] mb-2">{item.title}</h4>
-                      <div className="flex items-center gap-3 text-xs text-[#b8b5ad]">
+                      <div className="flex items-center gap-3 text-xs text-[#b8b5ad] mb-2">
                         <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {item.views}</span>
                         <span>•</span>
                         <span className="flex items-center gap-1 text-[#7dd3c0]"><Users className="w-3 h-3" /> {item.interestedCount}</span>
                       </div>
-                      <div className="mt-2">
-                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#7dd3c0]/20 to-[#a8d5ba]/10 border border-[#7dd3c0]/30 text-xs text-[#7dd3c0]">
-                          {item.status === 'active' ? 'Aktywne' : item.status}
-                        </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setShowCompleteConfirm(item.id)}
+                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] text-xs font-medium flex items-center gap-1"
+                        >
+                          <CheckCircle className="w-3 h-3" /> Zakończ
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(item.id)}
+                          className="px-3 py-1.5 rounded-xl bg-[rgba(232,141,141,0.2)] border border-[#e88d8d]/40 text-[#e88d8d] text-xs font-medium flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" /> Usuń
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -62,7 +156,7 @@ export default function MyListings() {
           </div>
         )}
 
-        {/* Past listings */}
+        {/* Completed listings */}
         {completedListings.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-[#f5f3ed] mb-4">Zakończone</h3>
@@ -75,7 +169,7 @@ export default function MyListings() {
                     className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/10 rounded-2xl overflow-hidden shadow-xl opacity-75"
                   >
                     <div className="flex gap-4">
-                      <div className="w-24 h-24 flex-shrink-0 relative">
+                      <div className="w-24 h-auto flex-shrink-0 relative">
                         <ImageWithFallback
                           src={item.image}
                           alt={item.title}
@@ -108,7 +202,7 @@ export default function MyListings() {
           <div className="text-center py-12">
             <p className="text-[#b8b5ad]">Nie masz jeszcze żadnych ogłoszeń</p>
             <button
-              onClick={() => navigate('/listing')}
+              onClick={() => setShowTypeModal(true)}
               className="mt-4 px-6 py-3 bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium rounded-2xl"
             >
               Dodaj pierwsze ogłoszenie
@@ -116,6 +210,34 @@ export default function MyListings() {
           </div>
         )}
       </div>
+
+      {/* Modal potwierdzenia usunięcia */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-[rgba(42,45,53,0.95)] backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-[rgba(60,65,75,0.95)] to-[rgba(50,55,65,0.95)] border border-[#e88d8d]/30 rounded-3xl p-6 w-full shadow-2xl">
+            <h2 className="text-lg font-medium text-[#f5f3ed] mb-3">Usuń ogłoszenie?</h2>
+            <p className="text-sm text-[#b8b5ad] mb-6">Tej akcji nie można cofnąć.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-3 rounded-xl bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 text-[#f5f3ed]">Anuluj</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#e88d8d] to-[#c96b6b] text-white font-medium">Usuń</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal potwierdzenia zakończenia */}
+      {showCompleteConfirm && (
+        <div className="fixed inset-0 bg-[rgba(42,45,53,0.95)] backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-[rgba(60,65,75,0.95)] to-[rgba(50,55,65,0.95)] border border-[#7dd3c0]/30 rounded-3xl p-6 w-full shadow-2xl">
+            <h2 className="text-lg font-medium text-[#f5f3ed] mb-3">Oznacz jako zakończone?</h2>
+            <p className="text-sm text-[#b8b5ad] mb-6">Po potwierdzeniu przyznasz punkty społecznościowe.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowCompleteConfirm(null)} className="flex-1 px-4 py-3 rounded-xl bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 text-[#f5f3ed]">Anuluj</button>
+              <button onClick={() => handleComplete(showCompleteConfirm)} className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium">Potwierdź</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
