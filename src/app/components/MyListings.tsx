@@ -35,7 +35,7 @@ export default function MyListings() {
                   className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl overflow-hidden shadow-xl hover:border-[#7dd3c0]/30 transition-all duration-300 cursor-pointer"
                 >
                   <div className="flex gap-4">
-                    <div className="w-24 h-24 flex-shrink-0">
+                    <div className="w-24 h-auto flex-shrink-0 relative">
                       <ImageWithFallback
                         src={item.image}
                         alt={item.title}
@@ -75,7 +75,7 @@ export default function MyListings() {
                     className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/10 rounded-2xl overflow-hidden shadow-xl opacity-75"
                   >
                     <div className="flex gap-4">
-                      <div className="w-24 h-24 flex-shrink-0 relative">
+                      <div className="w-24 h-auto flex-shrink-0 relative">
                         <ImageWithFallback
                           src={item.image}
                           alt={item.title}
