@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { ImagePlus, Sparkles, Check, Repeat, Star } from 'lucide-react';
+import { ImagePlus, Check, ArrowLeft, Loader2, Wand2 } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 
 interface DesktopCreateHelpRequestProps {
