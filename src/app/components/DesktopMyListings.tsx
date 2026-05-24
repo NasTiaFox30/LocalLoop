@@ -119,9 +119,13 @@ export default function DesktopMyListings() {
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
-                      <div className="absolute top-3 right-3">
-                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-xs font-medium text-[#1e2026] shadow-lg">
-                          Aktywne
+                      <div className="absolute top-3 right-3 flex gap-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium shadow-lg ${
+                          item.listingType === 'offer' 
+                            ? 'bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026]'
+                            : 'bg-gradient-to-r from-[#89cff0] to-[#7dd3c0] text-[#1e2026]'
+                        }`}>
+                          {item.listingType === 'offer' ? 'Oferta' : 'Prośba'}
                         </span>
                       </div>
                       {/* Action buttons overlay */}
