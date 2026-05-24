@@ -2,7 +2,7 @@ import { X, Repeat, Star, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { getListingById, getUserById } from '../../data/appData';
+import { getListingById, getUserById, currentUser } from '../../data/appData';
 
 interface DesktopDetailDrawerProps {
   isOpen: boolean;
