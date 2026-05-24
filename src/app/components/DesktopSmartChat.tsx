@@ -77,6 +77,19 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
     setInputValue('');
   };
 
+  // Jeśli to rozmowa z samym sobą
+  if (isSelfChat) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <Sparkles className="w-16 h-16 text-[#7dd3c0] mx-auto mb-4 opacity-50" />
+          <h3 className="text-xl font-medium text-[#f5f3ed] mb-2">Nie możesz czatować sam ze sobą</h3>
+          <p className="text-sm text-[#b8b5ad]">To jest Twoje własne ogłoszenie.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!otherUser || !listing) {
     return (
       <div className="flex-1 flex items-center justify-center">
