@@ -210,6 +210,34 @@ export default function MyListings() {
           </div>
         )}
       </div>
+
+      {/* Modal potwierdzenia usunięcia */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-[rgba(42,45,53,0.95)] backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-[rgba(60,65,75,0.95)] to-[rgba(50,55,65,0.95)] border border-[#e88d8d]/30 rounded-3xl p-6 w-full shadow-2xl">
+            <h2 className="text-lg font-medium text-[#f5f3ed] mb-3">Usuń ogłoszenie?</h2>
+            <p className="text-sm text-[#b8b5ad] mb-6">Tej akcji nie można cofnąć.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-3 rounded-xl bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 text-[#f5f3ed]">Anuluj</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#e88d8d] to-[#c96b6b] text-white font-medium">Usuń</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal potwierdzenia zakończenia */}
+      {showCompleteConfirm && (
+        <div className="fixed inset-0 bg-[rgba(42,45,53,0.95)] backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-[rgba(60,65,75,0.95)] to-[rgba(50,55,65,0.95)] border border-[#7dd3c0]/30 rounded-3xl p-6 w-full shadow-2xl">
+            <h2 className="text-lg font-medium text-[#f5f3ed] mb-3">Oznacz jako zakończone?</h2>
+            <p className="text-sm text-[#b8b5ad] mb-6">Po potwierdzeniu przyznasz punkty społecznościowe.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowCompleteConfirm(null)} className="flex-1 px-4 py-3 rounded-xl bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 text-[#f5f3ed]">Anuluj</button>
+              <button onClick={() => handleComplete(showCompleteConfirm)} className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium">Potwierdź</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
