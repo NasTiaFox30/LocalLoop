@@ -177,12 +177,14 @@ export default function SmartChat() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputValue)}
-              placeholder="Napisz wiadomość..."
-              className="flex-1 backdrop-blur-sm bg-[rgba(40,43,50,0.5)] border border-[#7dd3c0]/20 rounded-2xl px-5 py-3.5 text-sm text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 transition-all duration-300"
+              placeholder={isSelfChat ? "Nie możesz pisać do siebie" : "Napisz wiadomość..."}
+              disabled={isSelfChat}
+              className="flex-1 backdrop-blur-sm bg-[rgba(40,43,50,0.5)] border border-[#7dd3c0]/20 rounded-2xl px-5 py-3.5 text-sm text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               onClick={() => handleSendMessage(inputValue)}
-              className="w-14 h-14 bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] rounded-2xl flex items-center justify-center hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-lg shadow-[#7dd3c0]/20"
+              disabled={isSelfChat || !inputValue.trim()}
+              className="w-14 h-14 bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] rounded-2xl flex items-center justify-center hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-lg shadow-[#7dd3c0]/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-5 h-5 text-[#1e2026]" />
             </button>
