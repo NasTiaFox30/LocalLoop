@@ -7,8 +7,44 @@ import type { Listing } from '../../data/appData';
 
 export default function DesktopMyListings() {
   const navigate = useNavigate();
-  const activeListings = getActiveListingsByUser(currentUser.id);
-  const completedListings = getCompletedListingsByUser(currentUser.id);
+  const [activeListings, setActiveListings] = useState<Listing[]>(() => getActiveListingsByUser(currentUser.id));
+  const [completedListings, setCompletedListings] = useState<Listing[]>(() => getCompletedListingsByUser(currentUser.id));
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState<string | null>(null);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+
+  const refreshListings = () => {
+    setActiveListings(getActiveListingsByUser(currentUser.id));
+    setCompletedListings(getCompletedListingsByUser(currentUser.id));
+  };
+
+  const handleDelete = (listingId: string) => {
+    deleteListing(listingId);
+    refreshListings();
+    setShowDeleteConfirm(null);
+  };
+
+  const handleComplete = (listingId: string) => {
+    // W przyszłości: wybór użytkownika, z którym dokonano wymiany
+    // Na razie symulujemy wybór pierwszego innego użytkownika
+    const otherUserId = 'user-2';
+    completeListing(listingId, otherUserId);
+    refreshListings();
+    setShowCompleteConfirm(null);
+  };
+
+  const handleCreateNew = () => {
+    setShowTypeModal(true);
+  };
+
+  const handleSelectType = (type: 'offer' | 'request') => {
+    setShowTypeModal(false);
+    if (type === 'offer') {
+      navigate('/create-favor-request');
+    } else {
+      navigate('/create-help-request');
+    }
+  };
 
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
