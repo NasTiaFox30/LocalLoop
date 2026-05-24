@@ -10,10 +10,23 @@ interface DesktopCreateHelpRequestProps {
 
 export default function DesktopCreateHelpRequest({}: DesktopCreateHelpRequestProps) {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [imageUploaded, setImageUploaded] = useState(false);
-  const [requestText, setRequestText] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState(favorCategories[0].label);
+  const [suggestedBarter, setSuggestedBarter] = useState('');
+  const [suggestedPoints, setSuggestedPoints] = useState<number>(50);
+  const [urgency, setUrgency] = useState('Jak najszybciej');
+
+  const categories = favorCategories.map(c => c.label);
+  const uniqueCategories = [...new Set(categories)];
 
   const handleImageClick = () => {
+    const demoImageUrl = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800';
+    setImageUrl(demoImageUrl);
     setImageUploaded(true);
   };
 
