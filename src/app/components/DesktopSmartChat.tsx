@@ -57,7 +57,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
 
   const otherUser = currentConversation
     ? getUserById(currentConversation.participants.find(p => p !== currentUser.id)!)
-    : (ownerId ? getUserById(ownerId) : null);
+    : (ownerId && !isSelfChat ? getUserById(ownerId) : null);
 
   const messages = currentConversation ? getMessagesForConversation(currentConversation.id) : [];
 
