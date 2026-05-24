@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Repeat, Star, MessageSquare } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { getListingById, getUserById, timeAgo } from '../../data/appData';
+import { getListingById, getUserById, timeAgo, currentUser } from '../../data/appData';
 
 export default function DetailDrawer() {
   const navigate = useNavigate();
