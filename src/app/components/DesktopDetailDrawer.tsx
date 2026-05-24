@@ -69,6 +69,9 @@ export default function DesktopDetailDrawer({ isOpen, onClose, onChat, item }: D
                 <div>
                   <h3 className="text-lg font-medium text-[#f5f3ed]">{owner.name}</h3>
                   <p className="text-sm text-[#b8b5ad]">{owner.neighborhood} • Członek od {owner.memberSince.split(' ')[1]}</p>
+                  {isOwnListing && (
+                    <p className="text-xs text-[#7dd3c0] mt-1">~ To Twoje ogłoszenie ~</p>
+                  )}
                 </div>
               </div>
 
