@@ -30,6 +30,46 @@ export default function DesktopCreateHelpRequest({}: DesktopCreateHelpRequestPro
     setImageUploaded(true);
   };
 
+  const handleGenerateAI = async () => {
+    setIsGenerating(true);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    const generated = generateRandomHelpContent();
+    setTitle(generated.title);
+    setDescription(generated.description);
+    setSuggestedBarter(generated.suggestedBarter);
+    setSuggestedPoints(generated.suggestedPoints);
+    setIsGenerating(false);
+  };
+
+  const handleSubmit = async () => {
+    if (!title.trim()) {
+      alert('Proszę podać tytuł prośby');
+      return;
+    }
+    if (!description.trim()) {
+      alert('Proszę podać opis');
+      return;
+    }
+
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    addListing({
+      ownerId: currentUser.id,
+      title: title.trim(),
+      description: description.trim(),
+      image: imageUploaded ? imageUrl : 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+      status: 'active',
+      category: category,
+      listingType: 'request',
+      suggestedBarter: suggestedBarter || undefined,
+      suggestedPoints: suggestedPoints || undefined,
+    });
+
+    setIsLoading(false);
+    navigate('/my-listings');
+  };
+
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
       <div className="max-w-[800px] mx-auto p-8 min-h-screen flex flex-col justify-center">
