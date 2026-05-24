@@ -18,8 +18,15 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
   // Lokalny stan dla konwersacji
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
 
-  // Reakcja na zmiany propsów - POPRAWIONE
+  // Sprawdzenie czy to rozmowa z samym sobą
+  const isSelfChat = ownerId === currentUser.id;
+
   useEffect(() => {
+    if (isSelfChat) {
+      setCurrentConversation(null);
+      return;
+    }
+
     if (conversationId) {
       const found = conversations.find(c => c.id === conversationId);
       if (found) {
@@ -27,7 +34,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
       } else {
         setCurrentConversation(null);
       }
-    } else if (listingId && ownerId) {
+    } else if (listingId && ownerId && !isSelfChat) {
       const found = conversations.find(
         c => c.listingId === listingId && c.participants.includes(ownerId)
       );
@@ -41,7 +48,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
     } else {
       setCurrentConversation(null);
     }
-  }, [conversationId, listingId, ownerId, conversations, addConversation]);
+  }, [conversationId, listingId, ownerId, conversations, addConversation, isSelfChat]);
 
   // Pobieranie danych zależnych od currentConversation
   const listing = currentConversation 
@@ -50,7 +57,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
 
   const otherUser = currentConversation
     ? getUserById(currentConversation.participants.find(p => p !== currentUser.id)!)
-    : (ownerId ? getUserById(ownerId) : null);
+    : (ownerId && !isSelfChat ? getUserById(ownerId) : null);
 
   const messages = currentConversation ? getMessagesForConversation(currentConversation.id) : [];
 
@@ -65,10 +72,23 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
   ];
 
   const handleSendMessage = (text: string) => {
-    if (!text.trim() || !currentConversation) return;
+    if (!text.trim() || !currentConversation || isSelfChat) return;
     addMessage(currentConversation.id, text);
     setInputValue('');
   };
+
+  // Jeśli to rozmowa z samym sobą
+  if (isSelfChat) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <Sparkles className="w-16 h-16 text-[#7dd3c0] mx-auto mb-4 opacity-50" />
+          <h3 className="text-xl font-medium text-[#f5f3ed] mb-2">Nie możesz czatować sam ze sobą</h3>
+          <p className="text-sm text-[#b8b5ad]">To jest Twoje własne ogłoszenie.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!otherUser || !listing) {
     return (

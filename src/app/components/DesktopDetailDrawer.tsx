@@ -2,7 +2,7 @@ import { X, Repeat, Star, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { getListingById, getUserById } from '../../data/appData';
+import { getListingById, getUserById, currentUser } from '../../data/appData';
 
 interface DesktopDetailDrawerProps {
   isOpen: boolean;
@@ -19,6 +19,7 @@ export default function DesktopDetailDrawer({ isOpen, onClose, onChat, item }: D
   if (!listing || !owner) return null;
 
   const isOffer = listing.listingType === 'offer';
+  const isOwnListing = owner.id === currentUser.id;
 
   return (
     <AnimatePresence>
@@ -68,6 +69,9 @@ export default function DesktopDetailDrawer({ isOpen, onClose, onChat, item }: D
                 <div>
                   <h3 className="text-lg font-medium text-[#f5f3ed]">{owner.name}</h3>
                   <p className="text-sm text-[#b8b5ad]">{owner.neighborhood} • Członek od {owner.memberSince.split(' ')[1]}</p>
+                  {isOwnListing && (
+                    <p className="text-xs text-[#7dd3c0] mt-1">~ To Twoje ogłoszenie ~</p>
+                  )}
                 </div>
               </div>
 
@@ -106,17 +110,26 @@ export default function DesktopDetailDrawer({ isOpen, onClose, onChat, item }: D
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  onChat();
-                  // На десктопі переходимо в розділ повідомлень з параметрами
-                  navigate('/messages', { state: { listingId: listing.id, ownerId: owner.id } });
-                }}
-                className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/40 hover:scale-[1.02] transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center justify-center gap-2"
-              >
-                <MessageSquare className="w-5 h-5" />
-                Chatuj z {owner.name.split(' ')[0]}
-              </button>
+              {/* Przycisk czatu - pokazuje się tylko jeśli to NIE jest własne ogłoszenie */}
+              {!isOwnListing && listing.status === 'active' && (
+                <button
+                  onClick={() => {
+                    onChat();
+                    navigate('/messages', { state: { listingId: listing.id, ownerId: owner.id } });
+                  }}
+                  className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/40 hover:scale-[1.02] transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center justify-center gap-2"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  Chatuj z {owner.name.split(' ')[0]}
+                </button>
+              )}
+
+              {/* Komunikat dla własnego ogłoszenia */}
+              {isOwnListing && listing.status === 'active' && (
+                <div className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.3)] border border-[#7dd3c0]/20 rounded-2xl py-4 px-6 text-center">
+                  <p className="text-sm text-[#b8b5ad]">~ To Twoje ogłoszenie ~</p>
+                </div>
+              )}
             </div>
           </motion.div>
         </>

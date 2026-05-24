@@ -15,6 +15,14 @@ export default function SmartChat() {
   const listingId = location.state?.listingId;
   const ownerId = location.state?.ownerId;
 
+  // Zabezpieczenie: jeśli ownerId to aktualny użytkownik, przekieruj
+  useEffect(() => {
+    if (ownerId && ownerId === currentUser.id) {
+      // Nie można czatować samemu ze sobą
+      navigate('/messages', { replace: true });
+    }
+  }, [ownerId, navigate]);
+
   // Отримуємо розмову напряму з контексту на основі пропсів
   const conversation = conversationId 
     ? conversations.find(c => c.id === conversationId)
@@ -31,12 +39,15 @@ export default function SmartChat() {
     ? getUserById(conversation.participants.find(p => p !== currentUser.id)!)
     : (ownerId ? getUserById(ownerId) : null);
 
+  // Sprawdzenie czy to rozmowa z samym sobą
+  const isSelfChat = otherUser?.id === currentUser.id;
+
   // Створюємо нову розмову лише тоді, коли її дійсно немає
   useEffect(() => {
-    if (!conversation && listing && otherUser) {
+    if (!conversation && listing && otherUser && !isSelfChat) {
       addConversation(listing.id, otherUser.id);
     }
-  }, [conversation, listing, otherUser, addConversation]);
+  }, [conversation, listing, otherUser, addConversation, isSelfChat]);
 
   const messages = conversation ? getMessagesForConversation(conversation.id) : [];
 
@@ -51,10 +62,31 @@ export default function SmartChat() {
   ];
 
   const handleSendMessage = (text: string) => {
-    if (!text.trim() || !conversation) return;
+    if (!text.trim() || !conversation || isSelfChat) return;
     addMessage(conversation.id, text);
     setInputValue('');
   };
+
+  // Jeśli to rozmowa z samym sobą, pokaż komunikat
+  if (isSelfChat) {
+    return (
+      <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex items-center justify-center">
+        <div className="text-center p-6">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7dd3c0]/20 to-[#a8d5ba]/10 flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-10 h-10 text-[#7dd3c0]" />
+          </div>
+          <h3 className="text-xl font-medium text-[#f5f3ed] mb-2">Nie możesz czatować sam ze sobą</h3>
+          <p className="text-sm text-[#b8b5ad]">To jest Twoje własne ogłoszenie.</p>
+          <button
+            onClick={() => navigate('/messages')}
+            className="mt-6 px-6 py-3 bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium rounded-2xl"
+          >
+            Wróć do wiadomości
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!otherUser || !listing) {
     return (
@@ -145,12 +177,14 @@ export default function SmartChat() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputValue)}
-              placeholder="Napisz wiadomość..."
-              className="flex-1 backdrop-blur-sm bg-[rgba(40,43,50,0.5)] border border-[#7dd3c0]/20 rounded-2xl px-5 py-3.5 text-sm text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 transition-all duration-300"
+              placeholder={isSelfChat ? "Nie możesz pisać do siebie" : "Napisz wiadomość..."}
+              disabled={isSelfChat}
+              className="flex-1 backdrop-blur-sm bg-[rgba(40,43,50,0.5)] border border-[#7dd3c0]/20 rounded-2xl px-5 py-3.5 text-sm text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               onClick={() => handleSendMessage(inputValue)}
-              className="w-14 h-14 bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] rounded-2xl flex items-center justify-center hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-lg shadow-[#7dd3c0]/20"
+              disabled={isSelfChat || !inputValue.trim()}
+              className="w-14 h-14 bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] rounded-2xl flex items-center justify-center hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-lg shadow-[#7dd3c0]/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-5 h-5 text-[#1e2026]" />
             </button>

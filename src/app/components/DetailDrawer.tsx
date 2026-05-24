@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Repeat, Star, MessageSquare } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { getListingById, getUserById, timeAgo } from '../../data/appData';
+import { getListingById, getUserById, timeAgo, currentUser } from '../../data/appData';
 
 export default function DetailDrawer() {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ export default function DetailDrawer() {
   }
 
   const isOffer = listing.listingType === 'offer';
+  const isOwnListing = owner.id === currentUser.id;
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex flex-col pb-20">
@@ -45,6 +46,9 @@ export default function DetailDrawer() {
             <div>
               <h2 className="font-medium text-[#f5f3ed]">{owner.name}</h2>
               <p className="text-xs text-[#b8b5ad]">{owner.neighborhood} • Członek od {owner.memberSince.split(' ')[1]}</p>
+              {isOwnListing && (
+                <p className="text-xs text-[#7dd3c0] mt-1">~ To Twoje ogłoszenie ~</p>
+              )}
             </div>
           </div>
 
@@ -95,7 +99,8 @@ export default function DetailDrawer() {
             </div>
           </div>
 
-          {listing.status === 'active' && (
+          {/* Przycisk czatu - pokazuje się tylko jeśli to NIE jest własne ogłoszenie */}
+          {!isOwnListing && listing.status === 'active' && (
             <div className="backdrop-blur-md bg-gradient-to-t from-[rgba(42,45,53,0.95)] to-[rgba(42,45,53,0.8)] border-t border-[#7dd3c0]/15">
               <div className="max-w-md mx-auto">
                 <button
@@ -105,6 +110,17 @@ export default function DetailDrawer() {
                   <MessageSquare className="w-5 h-5" />
                   Chatuj z {owner.name.split(' ')[0]}
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Komunikat dla własnego ogłoszenia */}
+          {isOwnListing && listing.status === 'active' && (
+            <div className="backdrop-blur-md bg-gradient-to-t from-[rgba(42,45,53,0.95)] to-[rgba(42,45,53,0.8)] border-t border-[#7dd3c0]/15">
+              <div className="max-w-md mx-auto">
+                <div className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.3)] border border-[#7dd3c0]/20 rounded-2xl py-4 px-6 text-center">
+                  <p className="text-sm text-[#b8b5ad]">~ To Twoje ogłoszenie ~</p>
+                </div>
               </div>
             </div>
           )}
