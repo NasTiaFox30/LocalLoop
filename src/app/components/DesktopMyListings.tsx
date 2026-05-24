@@ -124,6 +124,23 @@ export default function DesktopMyListings() {
                           Aktywne
                         </span>
                       </div>
+                      {/* Action buttons overlay */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+                        <button
+                          onClick={() => setShowCompleteConfirm(item.id)}
+                          className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg"
+                          title="Oznacz jako zakończone"
+                        >
+                          <CheckCircle className="w-6 h-6 text-[#1e2026]" />
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(item.id)}
+                          className="w-12 h-12 rounded-full bg-gradient-to-br from-[#e88d8d] to-[#c96b6b] flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg"
+                          title="Usuń ogłoszenie"
+                        >
+                          <Trash2 className="w-6 h-6 text-white" />
+                        </button>
+                      </div>
                     </div>
                     <div className="p-4">
                       <h4 className="font-medium text-base text-[#f5f3ed] mb-3">{item.title}</h4>
