@@ -18,7 +18,9 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
   // Lokalny stan dla konwersacji
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
 
-  // Reakcja na zmiany propsów - POPRAWIONE
+  // Sprawdzenie czy to rozmowa z samym sobą
+  const isSelfChat = ownerId === currentUser.id;
+
   useEffect(() => {
     if (conversationId) {
       const found = conversations.find(c => c.id === conversationId);
