@@ -62,7 +62,7 @@ export default function SmartChat() {
   ];
 
   const handleSendMessage = (text: string) => {
-    if (!text.trim() || !conversation) return;
+    if (!text.trim() || !conversation || isSelfChat) return;
     addMessage(conversation.id, text);
     setInputValue('');
   };
