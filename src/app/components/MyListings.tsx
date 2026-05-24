@@ -50,7 +50,7 @@ export default function MyListings() {
           >
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="font-medium text-[#f5f3ed]">Moje Ogłoszenia</h1>
             <p className="text-sm text-[#b8b5ad]">{activeListings.length} aktywne</p>
           </div>
@@ -64,7 +64,7 @@ export default function MyListings() {
               {activeListings.map((item) => (
                 <div
                   key={item.id}
-                  className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl overflow-hidden shadow-xl hover:border-[#7dd3c0]/30 transition-all duration-300 cursor-pointer"
+                  className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl overflow-hidden shadow-xl"
                 >
                   <div className="flex gap-4">
                     <div className="w-24 h-auto flex-shrink-0 relative">
@@ -76,7 +76,7 @@ export default function MyListings() {
                     </div>
                     <div className="flex-1 py-3 pr-4">
                       <h4 className="font-medium text-[#f5f3ed] mb-2">{item.title}</h4>
-                      <div className="flex items-center gap-3 text-xs text-[#b8b5ad]">
+                      <div className="flex items-center gap-3 text-xs text-[#b8b5ad] mb-2">
                         <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {item.views}</span>
                         <span>•</span>
                         <span className="flex items-center gap-1 text-[#7dd3c0]"><Users className="w-3 h-3" /> {item.interestedCount}</span>
