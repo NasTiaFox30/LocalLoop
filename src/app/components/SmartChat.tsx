@@ -67,6 +67,27 @@ export default function SmartChat() {
     setInputValue('');
   };
 
+  // Jeśli to rozmowa z samym sobą, pokaż komunikat
+  if (isSelfChat) {
+    return (
+      <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex items-center justify-center">
+        <div className="text-center p-6">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7dd3c0]/20 to-[#a8d5ba]/10 flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-10 h-10 text-[#7dd3c0]" />
+          </div>
+          <h3 className="text-xl font-medium text-[#f5f3ed] mb-2">Nie możesz czatować sam ze sobą</h3>
+          <p className="text-sm text-[#b8b5ad]">To jest Twoje własne ogłoszenie.</p>
+          <button
+            onClick={() => navigate('/messages')}
+            className="mt-6 px-6 py-3 bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium rounded-2xl"
+          >
+            Wróć do wiadomości
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!otherUser || !listing) {
     return (
       <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex items-center justify-center">
