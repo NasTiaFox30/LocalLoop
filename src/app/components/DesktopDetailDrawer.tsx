@@ -19,6 +19,7 @@ export default function DesktopDetailDrawer({ isOpen, onClose, onChat, item }: D
   if (!listing || !owner) return null;
 
   const isOffer = listing.listingType === 'offer';
+  const isOwnListing = owner.id === currentUser.id;
 
   return (
     <AnimatePresence>
