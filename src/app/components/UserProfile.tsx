@@ -11,6 +11,8 @@ import {
   LogOut,
   ChevronRight,
 } from "lucide-react";
+import { logout } from '../../data/appData';
+import { currentUser } from '../../data/appData';
 
 interface UserProfileProps {
 }
@@ -50,21 +52,15 @@ export default function UserProfile({}: UserProfileProps) {
         <div className="flex flex-col items-center mb-8">
           <div className="relative mb-4">
             <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-2xl shadow-[#7dd3c0]/30 border-4 border-[#2a2d35]">
-              <span className="text-3xl font-medium text-[#1e2026]">
-                JK
-              </span>
+              <span className="text-3xl font-medium text-[#1e2026]">{currentUser.initials}</span>
             </div>
             <button onClick={() => navigate('/edit-profile')} className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] flex items-center justify-center shadow-lg border-2 border-[#2a2d35] hover:scale-110 transition-transform duration-300">
               <Edit className="w-4 h-4 text-[#1e2026]" />
             </button>
           </div>
 
-          <h2 className="text-2xl font-medium text-[#f5f3ed] mb-1">
-            Jan Kowalski
-          </h2>
-          <p className="text-sm text-[#b8b5ad]">
-            jan.kowalski@email.com
-          </p>
+          <h2 className="text-2xl font-medium text-[#f5f3ed] mb-1">{currentUser.name}</h2>
+          <p className="text-sm text-[#b8b5ad]">{currentUser.email}</p>
         </div>
 
         <div className="space-y-3 mb-6">
@@ -158,8 +154,11 @@ export default function UserProfile({}: UserProfileProps) {
         </div>
 
         <button
-          onClick={() => navigate("onboarding")}
-          className="w-full backdrop-blur-md bg-gradient-to-br from-[rgba(232,141,141,0.1)] to-transparent border-2 border-[#e88d8d]/30 rounded-2xl p-4 hover:border-[#e88d8d]/50 hover:bg-[rgba(232,141,141,0.15)] transition-all duration-300 flex items-center justify-center gap-3 group"
+          onClick={() => {
+            logout();
+            navigate('/onboarding');
+          }}
+          className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-[rgba(232,141,141,0.1)] border border-transparent hover:border-[#e88d8d]/30 transition-all duration-300 group"
         >
           <LogOut className="w-5 h-5 text-[#e88d8d]" />
           <span className="font-medium text-[#e88d8d]">
@@ -168,7 +167,7 @@ export default function UserProfile({}: UserProfileProps) {
         </button>
 
         <p className="text-xs text-center text-[#b8b5ad] mt-6">
-          Członek społeczności od stycznia 2024
+          Członek społeczności od {currentUser.memberSince}
         </p>
       </div>
     </div>

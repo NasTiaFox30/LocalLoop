@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Camera, Trash2 } from 'lucide-react';
+import { currentUser } from '../../data/appData';
 
 interface DesktopEditProfileProps {
 }
@@ -32,7 +33,7 @@ export default function DesktopEditProfile({}: DesktopEditProfileProps) {
               <label className="text-sm text-[#b8b5ad] mb-2 block">Imię i nazwisko</label>
               <input
                 type="text"
-                defaultValue="Jan Kowalski"
+                defaultValue={currentUser.name}
                 className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl px-4 py-3 text-sm text-[#f5f3ed] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-lg focus:shadow-[#7dd3c0]/10 transition-all duration-300"
               />
             </div>
@@ -41,7 +42,7 @@ export default function DesktopEditProfile({}: DesktopEditProfileProps) {
               <label className="text-sm text-[#b8b5ad] mb-2 block">Email</label>
               <input
                 type="email"
-                defaultValue="jan.kowalski@email.com"
+                defaultValue={currentUser.email}
                 className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl px-4 py-3 text-sm text-[#f5f3ed] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-lg focus:shadow-[#7dd3c0]/10 transition-all duration-300"
               />
             </div>

@@ -1,5 +1,8 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { syncCurrentUser, isLoggedIn, setPointsNotificationCallback} from '../data/appData';
+import { PointsProvider, usePoints } from '../contexts/PointsContext';
+import { PointsNotification } from './components/PointsNotification';
 
 // Layouts
 import DesktopSidebar from './components/DesktopSidebar';
@@ -60,6 +63,25 @@ function AdaptivePage({
   );
 }
 
+// Logika powiadomień
+function PointsNotificationManager() {
+  const { showPointsEarned } = usePoints();
+  
+  useEffect(() => {
+    setPointsNotificationCallback(showPointsEarned);
+    return () => setPointsNotificationCallback(null);
+  }, [showPointsEarned]);
+  
+  return null; // Ten komponent nie renderuje niczego wizualnego
+}
+
+
+// Wyświetlanie powiadomień
+function PointsNotificationContainer() {
+  const { notifications, removeNotification } = usePoints();
+  return <PointsNotification notifications={notifications} onRemove={removeNotification} />;
+}
+
 export default function App() {
   const location = useLocation();
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
@@ -71,6 +93,27 @@ export default function App() {
     location.pathname === '/auth';
 
   const isAppRoute = APP_ROUTES.some((r) => location.pathname.startsWith(r));
+  const isUserLoggedIn = isLoggedIn();
+
+  useEffect(() => {
+    syncCurrentUser();
+    
+    const handleUserChange = () => {
+      syncCurrentUser();
+      window.location.reload();
+    };
+    
+    window.addEventListener('userChanged', handleUserChange);
+    return () => window.removeEventListener('userChanged', handleUserChange);
+  }, []);
+  
+  if (!isAuthScreen && !isUserLoggedIn) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  if ((location.pathname === '/auth' || location.pathname === '/onboarding') && isUserLoggedIn) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleOpenDetail = (item: any) => {
     setSelectedItem(item);
@@ -83,6 +126,8 @@ export default function App() {
 
   return (
     <ConversationsProvider>
+    <PointsProvider>
+      <PointsNotificationManager />
     <div className="size-full min-h-screen bg-[#2a2d35]">
       {/* Desktop sidebar – only visible on app routes */}
       {isAppRoute && <DesktopSidebar />}
@@ -211,7 +256,9 @@ export default function App() {
         }}
         item={selectedItem}
       />
+      <PointsNotificationContainer />
     </div>
+    </PointsProvider>
     </ConversationsProvider>
   );
 }

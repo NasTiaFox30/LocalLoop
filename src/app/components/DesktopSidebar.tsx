@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Package, Leaf, Mail, User, LogOut } from 'lucide-react';
+import { logout } from '../../data/appData';
 
 const navItems = [
   { icon: Home,    label: 'Home',             path: '/dashboard' },
@@ -75,7 +76,10 @@ export default function DesktopSidebar() {
       {/* Logout */}
       <div className="p-4 border-t border-[#7dd3c0]/10">
         <button
-          onClick={() => navigate('/onboarding')}
+          onClick={() => {
+            logout();
+            navigate('/onboarding');
+          }}
           className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-[rgba(232,141,141,0.1)] border border-transparent hover:border-[#e88d8d]/30 transition-all duration-300 group"
         >
           <div className="w-11 h-11 rounded-xl bg-[rgba(232,141,141,0.1)] flex items-center justify-center group-hover:bg-[rgba(232,141,141,0.15)]">

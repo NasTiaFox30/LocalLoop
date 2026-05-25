@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Typy ─────────────────────────────────────────────────────────────────────
+export const USER_CHANGED_EVENT = 'userChanged';
 
 export interface User {
   id: string;
@@ -35,10 +36,17 @@ export interface Listing {
   // Value suggestions
   suggestedBarter?: string;
   suggestedPoints?: number;
-  // For completed listings
-  completedWith?: string;
   completedWithUserId?: string;
   completedAt?: string;
+  applications: Application[];
+}
+
+export interface Application {
+  userId: string;
+  listingId: string;
+  message: string;
+  appliedAt: string;
+  status: 'pending' | 'accepted' | 'rejected';
 }
 
 export interface ActivityItem {
@@ -179,17 +187,56 @@ export const users: User[] = [
   },
 ];
 
-export const currentUser = users.find(u => u.isCurrentUser)!;
 
 // Helper function to get user by ID
 export const getUserById = (userId: string): User | undefined => {
   return users.find(u => u.id === userId);
 };
 
-// ── Listings (Single source of truth) ─────────────────────────────────────────
+// ── Helper: update user impact score ─────────────────────────────────────────
+
+type PointsNotificationCallback = (points: number, action: string, target?: string) => void;
+let pointsNotificationCallback: PointsNotificationCallback | null = null;
+
+export const setPointsNotificationCallback = (callback: PointsNotificationCallback | null) => {
+  pointsNotificationCallback = callback;
+};
+
+// appData.ts
+export const updateUserImpactScore = (
+  userId: string, 
+  points: number, 
+  action: string = 'earned', 
+  target?: string
+) => {
+  const user = users.find(u => u.id === userId);
+  if (user) {
+    user.impactScore += points;
+    if (user.impactScore < 0) user.impactScore = 0;
+    
+    // Wywołaj callback dla powiadomienia (tylko dla aktualnego użytkownika)
+    if (pointsNotificationCallback && currentUser.id === userId) {
+      pointsNotificationCallback(points, action, target);
+    }
+    
+    // Aktualizacja statystyk społeczności
+    communityStats.impactScore = users.reduce((sum, u) => sum + u.impactScore, 0);
+    communityStats.communityHealth = Math.min(100, Math.floor(communityStats.impactScore / users.length));
+    
+    // Zapis do localStorage
+    localStorage.setItem('localLoop_users', JSON.stringify(users));
+    
+    // Jeśli to obecny użytkownik, zsynchronizuj go
+    if (currentUser.id === userId) {
+      Object.assign(currentUser, user);
+      localStorage.setItem('localLoop_currentUserId', currentUser.id);
+    }
+  }
+};
+
+// ── Listings ─────────────────────────────────────────────────────────────────
 
 export const listings: Listing[] = [
-  // OFFERS (services/goods offered by users)
   {
     id: 'lst-1',
     ownerId: 'user-1',
@@ -204,6 +251,7 @@ export const listings: Listing[] = [
     listingType: 'offer',
     suggestedBarter: 'Ciasto drożdżowe lub pomoc w ogrodzie',
     suggestedPoints: 85,
+    applications: [],
   },
   {
     id: 'lst-2',
@@ -219,6 +267,7 @@ export const listings: Listing[] = [
     listingType: 'offer',
     suggestedBarter: 'Świeże zioła lub pomoc w ogrodzie',
     suggestedPoints: 45,
+    applications: [],
   },
   {
     id: 'lst-3',
@@ -234,6 +283,7 @@ export const listings: Listing[] = [
     listingType: 'offer',
     suggestedBarter: 'Wymiana na pomoc w ogrodzie lub domowe wypieki',
     suggestedPoints: 100,
+    applications: [],
   },
   {
     id: 'lst-4',
@@ -249,6 +299,7 @@ export const listings: Listing[] = [
     listingType: 'offer',
     suggestedBarter: 'Domowe ciasto lub pomoc w ogrodzie',
     suggestedPoints: 60,
+    applications: [],
   },
   {
     id: 'lst-5',
@@ -264,6 +315,7 @@ export const listings: Listing[] = [
     listingType: 'offer',
     suggestedBarter: 'Wymiana na warzywa z ogrodu lub pomoc w ogrodzie',
     suggestedPoints: 30,
+    applications: [],
   },
   {
     id: 'lst-6',
@@ -279,6 +331,7 @@ export const listings: Listing[] = [
     listingType: 'offer',
     suggestedBarter: 'Pomoc w ogrodzie w zamian',
     suggestedPoints: 70,
+    applications: [],
   },
   {
     id: 'lst-7',
@@ -292,9 +345,9 @@ export const listings: Listing[] = [
     views: 89,
     interestedCount: 7,
     listingType: 'offer',
-    completedWith: 'Piotr N.',
     completedWithUserId: 'user-3',
     completedAt: '2023-12-15T10:00:00Z',
+    applications: [],
   },
   
   // REQUESTS (help requests from users)
@@ -312,6 +365,7 @@ export const listings: Listing[] = [
     listingType: 'request',
     suggestedBarter: 'Domowe ciasto lub 50 punktów społecznościowych',
     suggestedPoints: 50,
+    applications: [],
   },
   {
     id: 'req-2',
@@ -327,6 +381,7 @@ export const listings: Listing[] = [
     listingType: 'request',
     suggestedBarter: 'Pomoc w ogrodzie w zamian',
     suggestedPoints: 40,
+    applications: [],
   },
   {
     id: 'req-3',
@@ -342,6 +397,7 @@ export const listings: Listing[] = [
     listingType: 'request',
     suggestedBarter: 'Wymiana na domowe wypieki',
     suggestedPoints: 80,
+    applications: [],
   },
   {
     id: 'req-4',
@@ -357,6 +413,7 @@ export const listings: Listing[] = [
     listingType: 'request',
     suggestedBarter: 'Pomoc w ogrodzie w zamian',
     suggestedPoints: 60,
+    applications: [],
   },
   {
     id: 'req-5',
@@ -372,10 +429,194 @@ export const listings: Listing[] = [
     listingType: 'request',
     suggestedBarter: 'Domowe ciasto + 30 punktów',
     suggestedPoints: 70,
+    applications: [],
   },
 ];
 
-// Helper functions for listings
+// ── Current user management (poprawione) ─────────────────────────────────────
+
+// Zamiast eksportować stałą, eksportujemy zmienną let, którą można aktualizować
+export let currentUser: User;
+
+// Funkcja do ustawiania obecnego użytkownika
+export const setCurrentUser = (user: User): void => {
+  Object.assign(currentUser, user);
+  // Dodatkowo zapisz w localStorage przy każdej zmianie
+  localStorage.setItem('localLoop_currentUserId', user.id);
+  localStorage.setItem('localLoop_isLoggedIn', 'true');
+};
+
+// Zmień aktualnego użytkownika (tylko do testów)
+export const switchUser = (userId: string): User | null => {
+  const newUser = users.find(u => u.id === userId);
+  if (!newUser) return null;
+  
+  // Zaktualizuj obecnego użytkownika
+  setCurrentUser(newUser);
+  window.dispatchEvent(new Event(USER_CHANGED_EVENT));
+  
+  // Zapisz dodatkowe informacje
+  localStorage.setItem('localLoop_lastLogin', new Date().toISOString());
+  
+  return currentUser;
+};
+
+// Wyloguj się (przywróć domyślnego użytkownika)
+export const logout = (): User => {
+  const defaultUser = users.find(u => u.id === 'user-1')!;
+  setCurrentUser(defaultUser);
+  window.dispatchEvent(new Event(USER_CHANGED_EVENT));
+  localStorage.removeItem('localLoop_currentUserId');
+  localStorage.removeItem('localLoop_isLoggedIn');
+  localStorage.removeItem('localLoop_lastLogin');
+  return currentUser;
+};
+
+// Sprawdź czy użytkownik jest zalogowany
+export const isLoggedIn = (): boolean => {
+  return localStorage.getItem('localLoop_isLoggedIn') === 'true';
+};
+
+// Pobierz ID zalogowanego użytkownika
+export const getLoggedInUserId = (): string | null => {
+  return localStorage.getItem('localLoop_currentUserId');
+};
+
+// Synchronizuj obecnego użytkownika z localStorage
+export const syncCurrentUser = (): void => {
+  const savedUserId = localStorage.getItem('localLoop_currentUserId');
+  const isLoggedInFlag = localStorage.getItem('localLoop_isLoggedIn') === 'true';
+  
+  // Znajdź domyślnego użytkownika
+  const defaultUser = users.find(u => u.id === 'user-1')!;
+  
+  if (savedUserId && isLoggedInFlag) {
+    const savedUser = users.find(u => u.id === savedUserId);
+    if (savedUser) {
+      if (!currentUser) {
+        // Jeśli currentUser nie istnieje, stwórz go
+        (currentUser as any) = { ...savedUser };
+      } else {
+        Object.assign(currentUser, savedUser);
+      }
+      console.log(`🔄 Przywrócono sesję użytkownika: ${currentUser.name} (${currentUser.id})`);
+      return;
+    } else {
+      console.warn('⚠️ Nie znaleziono zapisanego użytkownika, usuwam nieprawidłową sesję');
+      localStorage.removeItem('localLoop_currentUserId');
+      localStorage.removeItem('localLoop_isLoggedIn');
+    }
+  }
+  
+  // Domyślny użytkownik
+  if (!currentUser) {
+    (currentUser as any) = { ...defaultUser };
+  } else {
+    Object.assign(currentUser, defaultUser);
+  }
+  console.log('👤 Brak zapisanego logowania, domyślny użytkownik: Jan Kowalski');
+};
+
+// Inicjalizacja currentUser
+syncCurrentUser();
+
+// Dodaj event listener na storage, aby reagować na zmiany w localStorage z innych kart/okien
+window.addEventListener('storage', (event) => {
+  if (event.key === 'localLoop_currentUserId' || event.key === 'localLoop_isLoggedIn') {
+    syncCurrentUser();
+    // Opcjonalnie: odśwież stronę lub wywołaj callback
+    window.location.reload();
+  }
+});
+
+// ── Applications management ───────────────────────────────────────────────────
+
+export const addApplication = (listingId: string, userId: string, message: string): Application | null => {
+  const listing = listings.find(l => l.id === listingId);
+  if (!listing) return null;
+  
+  // Nie można zgłosić się do własnego ogłoszenia
+  if (listing.ownerId === userId) return null;
+  
+  // Tylko aktywne ogłoszenia
+  if (listing.status !== 'active') return null;
+  
+  // Sprawdź czy użytkownik już się zgłosił
+  const existing = listing.applications.find(a => a.userId === userId);
+  if (existing) return null;
+  
+  const newApp: Application = {
+    userId,
+    listingId,
+    message,
+    appliedAt: new Date().toISOString(),
+    status: 'pending',
+  };
+  
+  listing.applications.push(newApp);
+  localStorage.setItem('localLoop_listings', JSON.stringify(listings));
+  
+  return newApp;
+};
+
+export const getApplicationsForListing = (listingId: string): Application[] => {
+  const listing = listings.find(l => l.id === listingId);
+  if (!listing) return [];
+  return listing.applications || [];
+};
+
+export const getApplicationStatus = (listingId: string, userId: string): 'pending' | 'accepted' | 'rejected' | null => {
+  const listing = listings.find(l => l.id === listingId);
+  if (!listing) return null;
+  const app = listing.applications.find(a => a.userId === userId);
+  return app?.status || null;
+};
+
+export const updateApplicationStatus = (
+  listingId: string, 
+  userId: string, 
+  status: 'pending' | 'accepted' | 'rejected'
+): Application | null => {
+  const listing = listings.find(l => l.id === listingId);
+  if (!listing) return null;
+  
+  const application = listing.applications.find(a => a.userId === userId);
+  if (!application) return null;
+  
+  application.status = status;
+  localStorage.setItem('localLoop_listings', JSON.stringify(listings));
+  
+  return application;
+};
+
+export const acceptApplication = (listingId: string, userId: string): Application | null => {
+  const listing = listings.find(l => l.id === listingId);
+  if (!listing) return null;
+  
+  const application = listing.applications.find(a => a.userId === userId);
+  if (!application) return null;
+  
+  application.status = 'accepted';
+  localStorage.setItem('localLoop_listings', JSON.stringify(listings));
+  
+  return application;
+};
+
+export const rejectApplication = (listingId: string, userId: string): Application | null => {
+  const listing = listings.find(l => l.id === listingId);
+  if (!listing) return null;
+  
+  const application = listing.applications.find(a => a.userId === userId);
+  if (!application) return null;
+  
+  application.status = 'rejected';
+  localStorage.setItem('localLoop_listings', JSON.stringify(listings));
+  
+  return application;
+};
+
+// ── Helper functions for listings ────────────────────────────────────────────
+
 export const getListingsByUser = (userId: string): Listing[] => {
   return listings.filter(l => l.ownerId === userId);
 };
@@ -410,106 +651,142 @@ export const addListing = (listing: Omit<Listing, 'id' | 'createdAt' | 'views' |
     createdAt: new Date().toISOString(),
     views: 0,
     interestedCount: 0,
+    applications: [],
   };
   
-  // W rzeczywistej aplikacji byłby to API call
-  // Na potrzeby demo, dodajemy do lokalnej tablicy
   listings.push(newListing);
-  
-  // Zapisujemy do localStorage dla trwałości
-  const storedListings = localStorage.getItem('localLoop_listings');
-  if (storedListings) {
-    const parsed = JSON.parse(storedListings);
-    parsed.push(newListing);
-    localStorage.setItem('localLoop_listings', JSON.stringify(parsed));
-  } else {
-    localStorage.setItem('localLoop_listings', JSON.stringify(listings));
-  }
+  localStorage.setItem('localLoop_listings', JSON.stringify(listings));
   
   return newListing;
 };
 
-// Usuwanie ogłoszenia
 export const deleteListing = (listingId: string): boolean => {
   const index = listings.findIndex(l => l.id === listingId);
   if (index === -1) return false;
   
   listings.splice(index, 1);
-  
-  // Aktualizujemy localStorage
   localStorage.setItem('localLoop_listings', JSON.stringify(listings));
   return true;
 };
 
-// Oznaczanie ogłoszenia jako zakończone
+// ── IMPACT SCORE LOGIC ───────────────────────────────────────────────────────
+
 export const completeListing = (listingId: string, completedWithUserId: string): Listing | null => {
   const listing = listings.find(l => l.id === listingId);
   if (!listing) return null;
   
+  // Sprawdzenie czy ogłoszenie jest aktywne
+  if (listing.status !== 'active') return null;
+  
+  // Sprawdzenie czy wybrany użytkownik nie jest właścicielem
+  if (listing.ownerId === completedWithUserId) return null;
+  
+  // Sprawdzenie czy wybrany użytkownik ma ZAAKCEPTOWANE zgłoszenie
+  const application = listing.applications.find(a => a.userId === completedWithUserId);
+  if (!application || application.status !== 'accepted') return null;
+  
+  const points = listing.suggestedPoints || 50;
+  const owner = users.find(u => u.id === listing.ownerId);
+  const helper = users.find(u => u.id === completedWithUserId);
+  
+  if (!owner || !helper) return null;
+  
+  // LOGIKA PUNKTÓW (poprawiona zgodnie z opisem)
+  if (listing.listingType === 'request') {
+    // Pomagający dostaje punkty
+    updateUserImpactScore(completedWithUserId, points, 'completed_help', listing.title);
+    // Właściciel dostaje połowę punktów (motywacja)
+    updateUserImpactScore(listing.ownerId, Math.floor(points / 2), 'received_help', listing.title);
+  } else {
+    // Korzystający dostaje sugerowane punkty
+    updateUserImpactScore(completedWithUserId, points, 'received_help', listing.title);
+    // Właściciel dostaje 1.5x więcej (bonus za udostępnienie)
+    updateUserImpactScore(listing.ownerId, Math.floor(points * 1.5), 'offer_shared', listing.title);
+  }
+  
+  // Aktualizacja statusu ogłoszenia
   listing.status = 'completed';
   listing.completedWithUserId = completedWithUserId;
   listing.completedAt = new Date().toISOString();
-  const completedWithUser = users.find(u => u.id === completedWithUserId);
-  listing.completedWith = completedWithUser?.name;
   
-  // Aktualizujemy localStorage
+  // Wyczyszczenie zgłoszeń po zakończeniu
+  listing.applications = [];
+  
+  // Aktualizacja liczników wymian dla użytkowników
+  owner.exchangesCount++;
+  helper.exchangesCount++;
+  
+  // Aktualizacja statystyk społeczności
+  communityStats.totalExchanges = listings.filter(l => l.status === 'completed').length;
+  communityStats.impactScore = users.reduce((sum, u) => sum + u.impactScore, 0);
+  communityStats.communityHealth = Math.min(100, Math.floor(communityStats.impactScore / users.length));
+  
+  // Zapis do localStorage
   localStorage.setItem('localLoop_listings', JSON.stringify(listings));
+  localStorage.setItem('localLoop_users', JSON.stringify(users));
+  
+  // Synchronizacja currentUser jeśli to on jest właścicielem lub pomocnikiem
+  if (currentUser.id === owner.id) {
+    Object.assign(currentUser, owner);
+  } else if (currentUser.id === helper.id) {
+    Object.assign(currentUser, helper);
+  }
+  
+  // Dodatkowo zapisz currentUser do localStorage
+  localStorage.setItem('localLoop_currentUserId', currentUser.id);
+  localStorage.setItem('localLoop_communityStats', JSON.stringify(communityStats));
   
   return listing;
 };
 
-// Aktualizacja ogłoszenia
-export const updateListing = (listingId: string, updates: Partial<Listing>): Listing | null => {
-  const listing = listings.find(l => l.id === listingId);
-  if (!listing) return null;
-  
-  Object.assign(listing, updates);
-  localStorage.setItem('localLoop_listings', JSON.stringify(listings));
-  
-  return listing;
-};
-
-// Inicjalizacja localStorage z początkowymi danymi
+// Inicjalizacja localStorage
 export const initializeListings = () => {
   const stored = localStorage.getItem('localLoop_listings');
   if (!stored) {
     localStorage.setItem('localLoop_listings', JSON.stringify(listings));
   } else {
-    // Jeśli istnieją dane w localStorage, ładujemy je do pamięci
     const storedListings = JSON.parse(stored);
     listings.length = 0;
     listings.push(...storedListings);
   }
+  
+  const storedUsers = localStorage.getItem('localLoop_users');
+  if (!storedUsers) {
+    localStorage.setItem('localLoop_users', JSON.stringify(users));
+  } else {
+    const storedUsersList = JSON.parse(storedUsers);
+    users.length = 0;
+    users.push(...storedUsersList);
+    const updatedCurrent = users.find(u => u.isCurrentUser);
+    if (updatedCurrent) {
+      Object.assign(currentUser, updatedCurrent);
+    }
+  }
 };
 
-// Wywołaj inicjalizację
 initializeListings();
 
-// ── Activity Feed (generated from listings and interactions) ──────────────────
+// ── Activity Feed ────────────────────────────────────────────────────────────
 
-// Generate activity items dynamically from listings
 export const getActivityFeed = (): ActivityItem[] => {
-  // Get all listings, sort by createdAt descending, take first 5
   const recentListings = [...listings]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 6);
 
-  const activities: ActivityItem[] = recentListings.map((listing, index) => ({
+  const activities: ActivityItem[] = recentListings.map((listing) => ({
     id: `act-${listing.id}`,
     listingId: listing.id,
     userId: listing.ownerId,
     action: listing.listingType === 'offer' ? 'created_offer' : 'created_request',
     timestamp: listing.createdAt,
-    likes: Math.floor(Math.random() * 15) + 1, // випадкові лайки для демо
+    likes: Math.floor(Math.random() * 15) + 1,
   }));
 
-  // Sort by timestamp descending (newest first)
   return activities.sort((a, b) => 
     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 };
 
-// Helper to format time ago
 export const timeAgo = (timestamp: string): string => {
   const date = new Date(timestamp);
   const now = new Date();
@@ -525,7 +802,6 @@ export const timeAgo = (timestamp: string): string => {
   return date.toLocaleDateString('pl-PL');
 };
 
-// Get action text based on action type
 export const getActionText = (action: ActivityItem['action'], listing: Listing, user: User): string => {
   switch (action) {
     case 'created_offer':
@@ -539,7 +815,7 @@ export const getActionText = (action: ActivityItem['action'], listing: Listing, 
   }
 };
 
-// ── Conversations & Messages ───────────────────────────────────────────────────
+// ── Conversations & Messages ─────────────────────────────────────────────────
 
 export const conversations: Conversation[] = [
   {
@@ -582,7 +858,6 @@ export const chatMessages: ChatMessage[] = [
   { id: 'msg-3', conversationId: 'conv-1', fromUserId: 'user-2', text: 'W sobotę planuję montaż półek. Czy mogłabym pożyczyć ją na weekend?', timestamp: '2024-01-28T09:30:00Z', read: true },
   { id: 'msg-4', conversationId: 'conv-1', fromUserId: 'user-1', text: 'Oczywiście! Mogę przynieść ją w sobotę rano.', timestamp: '2024-01-28T09:45:00Z', read: true },
   { id: 'msg-5', conversationId: 'conv-1', fromUserId: 'user-2', text: 'Świetnie! Mogę odebrać wiertarkę w sobotę rano', timestamp: '2024-01-28T10:30:00Z', read: false },
-  
   { id: 'msg-6', conversationId: 'conv-3', fromUserId: 'user-4', text: 'Cześć! Upiekłam dzisiaj drożdżówki.', timestamp: '2024-01-28T08:00:00Z', read: true },
   { id: 'msg-7', conversationId: 'conv-3', fromUserId: 'user-1', text: 'Brzmi pysznie! Mogę wpaść?', timestamp: '2024-01-28T08:10:00Z', read: true },
   { id: 'msg-8', conversationId: 'conv-3', fromUserId: 'user-4', text: 'Drożdżówki są gotowe do odbioru 🥐', timestamp: '2024-01-28T08:15:00Z', read: false },
@@ -622,7 +897,7 @@ export const favorCategories: FavorCategory[] = [
 export const communityStats: CommunityStats = {
   communityHealth: 87,
   totalExchanges: listings.filter(l => l.status === 'completed').length,
-  impactScore: 12,
+  impactScore: users.reduce((sum, u) => sum + u.impactScore, 0),
 };
 
 export const onboardingData = {

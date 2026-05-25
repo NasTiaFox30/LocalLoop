@@ -1,14 +1,45 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Lock, User, Leaf } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Leaf, Users, LogIn } from 'lucide-react';
+import { users, switchUser, currentUser } from '../../data/appData';
+import type { User } from '../../data/appData';
 
 export default function Auth() {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [selectedUserId, setSelectedUserId] = useState<string>(currentUser.id);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
+    
+    // Sprawdź czy wybrany użytkownik istnieje
+    const selectedUser = users.find(u => u.id === selectedUserId);
+    if (!selectedUser) {
+      alert('Wybrany użytkownik nie istnieje.');
+      return;
+    }
+    
+    if (selectedUserId !== currentUser.id) {
+      const switchedUser = switchUser(selectedUserId);
+      if (switchedUser) {
+        navigate('/dashboard');
+      }
+    } else {
+      localStorage.setItem('localLoop_isLoggedIn', 'true');
+      navigate('/dashboard');
+    }
+  };
+
+// W Auth.tsx, po switchUser
+  const handleDemoLogin = (user: User) => {
+    const switchedUser = switchUser(user.id);
+    if (switchedUser) {
+      // Zamiast window.location.href, używamy navigate
+      navigate('/dashboard');
+    }
   };
 
   return (
@@ -35,18 +66,62 @@ export default function Auth() {
               {isLogin ? 'Witaj ponownie' : 'Dołącz do społeczności'}
             </h2>
             <p className="text-sm text-[#b8b5ad]">
-              {isLogin ? 'Zaloguj się, aby kontynuować' : 'Stwórz konto i zacznij współdzielić'}
+              {isLogin 
+                ? 'Zaloguj się, aby kontynuować' 
+                : 'Stwórz konto i zacznij współdzielić'}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Panel szybkiego logowania (demo/test) */}
+          <div className="mb-6 backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="w-4 h-4 text-[#7dd3c0]" />
+              <span className="text-xs font-medium text-[#b8b5ad]">Szybki wybór konta (demo)</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {users.map((user) => {
+                const isCurrent = user.id === currentUser.id;
+                return (
+                  <button
+                    key={user.id}
+                    onClick={() => handleDemoLogin(user)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 ${
+                      isCurrent
+                        ? 'bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] shadow-lg'
+                        : 'backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 text-[#f5f3ed] hover:border-[#7dd3c0]/40 hover:scale-105'
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${user.avatarColor} flex items-center justify-center`}>
+                      <span className="text-[10px] font-medium text-[#1e2026]">{user.initials}</span>
+                    </div>
+                    {user.name}
+                    {isCurrent && <span className="text-[10px]">(obecny)</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-[#b8b5ad] text-center mt-3">
+              💡 Wybierz użytkownika, aby przetestować zgłoszenia – każdy ma inne ogłoszenia
+            </p>
+          </div>
+
+          {/* LUB separator */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#7dd3c0]/30 to-transparent" />
+            <span className="text-xs text-[#b8b5ad]">LUB</span>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#7dd3c0]/30 to-transparent" />
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
             {!isLogin && (
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-                  <User className="w-5 h-5 text-[#7dd3c0]" />
+                  <Users className="w-5 h-5 text-[#7dd3c0]" />
                 </div>
                 <input
                   type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="Imię i nazwisko"
                   className="w-full pl-12 pr-4 py-4 backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-lg focus:shadow-[#7dd3c0]/10 transition-all duration-300"
                 />
@@ -59,6 +134,8 @@ export default function Auth() {
               </div>
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
                 className="w-full pl-12 pr-4 py-4 backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-lg focus:shadow-[#7dd3c0]/10 transition-all duration-300"
               />
@@ -70,23 +147,18 @@ export default function Auth() {
               </div>
               <input
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Hasło"
                 className="w-full pl-12 pr-4 py-4 backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-lg focus:shadow-[#7dd3c0]/10 transition-all duration-300"
               />
             </div>
 
-            {isLogin && (
-              <div className="flex items-center justify-end">
-                <button type="button" className="text-sm text-[#7dd3c0] hover:text-[#a8d5ba] transition-colors">
-                  Zapomniałeś hasła?
-                </button>
-              </div>
-            )}
-
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 mt-6"
+              className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 mt-6 flex items-center justify-center gap-2"
             >
+              <LogIn className="w-5 h-5" />
               {isLogin ? 'Zaloguj się' : 'Dołącz do społeczności'}
             </button>
           </form>

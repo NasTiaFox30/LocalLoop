@@ -135,12 +135,12 @@ export default function Dashboard(_props: DashboardProps) {
             <div className="text-xs text-[#b8b5ad] mt-1">Zdrowie Społeczności</div>
           </div>
           <div className="backdrop-blur-md bg-gradient-to-br from-[#a8d5ba]/10 to-transparent rounded-2xl border border-[#a8d5ba]/20 p-4 text-center shadow-lg">
-            <div className="text-2xl font-medium bg-gradient-to-br from-[#a8d5ba] to-[#7dd3c0] bg-clip-text text-transparent">{communityStats.totalExchanges}</div>
-            <div className="text-xs text-[#b8b5ad] mt-1">Wymian</div>
+            <div className="text-2xl font-medium bg-gradient-to-br from-[#a8d5ba] to-[#7dd3c0] bg-clip-text text-transparent">{currentUser.exchangesCount}</div>
+            <div className="text-xs text-[#b8b5ad] mt-1">Twoje wymiany</div>
           </div>
           <div className="backdrop-blur-md bg-gradient-to-br from-[#89cff0]/10 to-transparent rounded-2xl border border-[#89cff0]/20 p-4 text-center shadow-lg">
-            <div className="text-2xl font-medium bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] bg-clip-text text-transparent">+{communityStats.impactScore}</div>
-            <div className="text-xs text-[#b8b5ad] mt-1">Impact Score</div>
+            <div className="text-2xl font-medium bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] bg-clip-text text-transparent">{currentUser.impactScore}</div>
+            <div className="text-xs text-[#b8b5ad] mt-1">Twój Impact Score</div>
           </div>
         </div>
       </div>

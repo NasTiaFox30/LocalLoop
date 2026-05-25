@@ -157,14 +157,14 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
                     <span className="text-sm text-[#b8b5ad]">Wymian</span>
                     <Package className="w-4 h-4 text-[#a8d5ba]" />
                   </div>
-                  <div className="text-3xl font-medium bg-gradient-to-br from-[#a8d5ba] to-[#7dd3c0] bg-clip-text text-transparent">{communityStats.totalExchanges}</div>
+                  <div className="text-3xl font-medium bg-gradient-to-br from-[#a8d5ba] to-[#7dd3c0] bg-clip-text text-transparent">{currentUser.exchangesCount}</div>
                 </div>
                 <div className="backdrop-blur-sm bg-gradient-to-br from-[#89cff0]/10 to-transparent rounded-2xl border border-[#89cff0]/20 p-4 hover:border-[#89cff0]/40 hover:scale-105 transition-all duration-300 shadow-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-[#b8b5ad]">Impact Score</span>
                     <Users className="w-4 h-4 text-[#89cff0]" />
                   </div>
-                  <div className="text-3xl font-medium bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] bg-clip-text text-transparent">+{communityStats.impactScore}</div>
+                  <div className="text-3xl font-medium bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] bg-clip-text text-transparent">{currentUser.impactScore}</div>
                 </div>
               </div>
             </div>

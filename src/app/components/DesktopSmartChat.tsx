@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles } from 'lucide-react';
-import { currentUser, getUserById, getListingById } from '../../data/appData';
+import { Send, Sparkles, UserPlus, CheckCircle, XCircle, Users, Check, X } from 'lucide-react';
+import { 
+  currentUser, 
+  getUserById, 
+  getListingById, 
+  addApplication,
+  getApplicationStatus,
+  getApplicationsForListing,
+  updateApplicationStatus,
+  type Application 
+} from '../../data/appData';
 import { useConversations } from '../../contexts/ConversationsContext';
 import type { Conversation } from '../../data/appData';
 
@@ -13,6 +22,11 @@ interface DesktopSmartChatProps {
 export default function DesktopSmartChat({ conversationId, listingId, ownerId }: DesktopSmartChatProps) {
   const { conversations, addConversation, addMessage, getMessagesForConversation } = useConversations();
   const [inputValue, setInputValue] = useState('');
+  const [applicationStatus, setApplicationStatus] = useState<'pending' | 'accepted' | 'rejected' | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [showApplicationsPanel, setShowApplicationsPanel] = useState(false);
+  const [processingApp, setProcessingApp] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Lokalny stan dla konwersacji
@@ -20,6 +34,12 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
 
   // Sprawdzenie czy to rozmowa z samym sobą
   const isSelfChat = ownerId === currentUser.id;
+
+  // Sprawdzenie czy aktualny użytkownik jest właścicielem ogłoszenia
+  const isOwner = (listingToCheck?: any) => {
+    if (!listingToCheck) return false;
+    return listingToCheck.ownerId === currentUser.id;
+  };
 
   useEffect(() => {
     if (isSelfChat) {
@@ -61,6 +81,26 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
 
   const messages = currentConversation ? getMessagesForConversation(currentConversation.id) : [];
 
+  // Sprawdź status zgłoszenia dla tego ogłoszenia (dla osoby zgłaszającej)
+  useEffect(() => {
+    if (listing && !isOwner(listing) && listing.status === 'active') {
+      const status = getApplicationStatus(listing.id, currentUser.id);
+      setApplicationStatus(status);
+    } else {
+      setApplicationStatus(null);
+    }
+  }, [listing]);
+
+  // Pobierz wszystkie zgłoszenia dla ogłoszenia (dla właściciela)
+  useEffect(() => {
+    if (listing && isOwner(listing) && listing.status === 'active') {
+      const apps = getApplicationsForListing(listing.id);
+      setApplications(apps);
+    } else {
+      setApplications([]);
+    }
+  }, [listing]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -75,6 +115,57 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
     if (!text.trim() || !currentConversation || isSelfChat) return;
     addMessage(currentConversation.id, text);
     setInputValue('');
+  };
+
+  const handleApply = async () => {
+    if (!listing || !otherUser || isOwner(listing) || listing.status !== 'active') return;
+    
+    setIsApplying(true);
+    
+    const defaultMessage = `Chcę pomóc przy "${listing.title}". ${listing.listingType === 'offer' ? 'Chciałbym/chciałabym skorzystać z tej oferty.' : 'Chciałbym/chciałabym pomóc.'}`;
+    
+    const application = addApplication(listing.id, currentUser.id, defaultMessage);
+    
+    if (application && currentConversation) {
+      setApplicationStatus('pending');
+      addMessage(currentConversation.id, `📋 Zgłosiłem/am się przy tym ogłoszeniu. Oczekuję na decyzję właściciela.`);
+    }
+    
+    setIsApplying(false);
+  };
+
+  const handleAcceptApplication = async (applicationUserId: string) => {
+    if (!listing) return;
+    setProcessingApp(applicationUserId);
+    
+    const updated = updateApplicationStatus(listing.id, applicationUserId, 'accepted');
+    
+    if (updated && currentConversation) {
+      const applicant = getUserById(applicationUserId);
+      addMessage(currentConversation.id, `✅ Zaakceptowałem/am zgłoszenie od ${applicant?.name}. Zakończ ogłoszenie w panelu "Moje Ogłoszenia" aby przyznać punkty.`);
+      // Odśwież listę zgłoszeń
+      setApplications(getApplicationsForListing(listing.id));
+      // Wyślij wiadomość do zgłaszającego (w konwersacji)
+      addMessage(currentConversation.id, `@${applicant?.name} Twoje zgłoszenie zostało zaakceptowane!`);
+    }
+    
+    setProcessingApp(null);
+  };
+
+  const handleRejectApplication = async (applicationUserId: string) => {
+    if (!listing) return;
+    setProcessingApp(applicationUserId);
+    
+    const updated = updateApplicationStatus(listing.id, applicationUserId, 'rejected');
+    
+    if (updated && currentConversation) {
+      const applicant = getUserById(applicationUserId);
+      addMessage(currentConversation.id, `❌ Odrzuciłem/am zgłoszenie od ${applicant?.name}.`);
+      // Odśwież listę zgłoszeń
+      setApplications(getApplicationsForListing(listing.id));
+    }
+    
+    setProcessingApp(null);
   };
 
   // Jeśli to rozmowa z samym sobą
@@ -102,6 +193,25 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
     );
   }
 
+  const showApplyButton = !isOwner(listing) && 
+                          listing.status === 'active' && 
+                          applicationStatus === null;
+
+  const showPendingStatus = applicationStatus === 'pending';
+  const showAcceptedStatus = applicationStatus === 'accepted';
+  const showRejectedStatus = applicationStatus === 'rejected';
+
+  const pendingApplications = applications.filter(a => a.status === 'pending');
+  const hasPendingApplications = pendingApplications.length > 0;
+
+  // Komponent zastępczy dla Clock
+  const ClockIcon = () => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Header */}
@@ -122,11 +232,157 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
               </div>
             </div>
           </div>
+          {/* Przycisk do panelu zgłoszeń (tylko dla właściciela) */}
+          {isOwner(listing) && listing.status === 'active' && (
+            <button
+              onClick={() => setShowApplicationsPanel(!showApplicationsPanel)}
+              className={`relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                showApplicationsPanel 
+                  ? 'bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026]' 
+                  : 'backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 text-[#7dd3c0] hover:border-[#7dd3c0]/40'
+              }`}
+            >
+              <Users className="w-5 h-5" />
+              {hasPendingApplications && (
+                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-br from-[#e88d8d] to-[#c96b6b] text-white text-xs flex items-center justify-center border-2 border-[#2a2d35]">
+                  {pendingApplications.length}
+                </div>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Panel zgłoszeń (dla właściciela) */}
+      {showApplicationsPanel && isOwner(listing) && listing.status === 'active' && (
+        <div className="border-b border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(125,211,192,0.05)] p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-[#f5f3ed] flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#7dd3c0]" />
+              Zgłoszenia ({applications.length})
+            </h3>
+            <button
+              onClick={() => setShowApplicationsPanel(false)}
+              className="text-xs text-[#b8b5ad] hover:text-[#7dd3c0]"
+            >
+              Zamknij
+            </button>
+          </div>
+          
+          {applications.length === 0 ? (
+            <p className="text-sm text-[#b8b5ad] text-center py-4">
+              Brak zgłoszeń. Poinformuj sąsiadów w czacie, żeby się zgłosili!
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {applications.map((app) => {
+                const applicant = getUserById(app.userId);
+                if (!applicant) return null;
+                
+                return (
+                  <div
+                    key={app.userId}
+                    className={`backdrop-blur-sm rounded-xl p-3 flex items-center justify-between ${
+                      app.status === 'pending'
+                        ? 'bg-[rgba(125,211,192,0.1)] border border-[#7dd3c0]/30'
+                        : app.status === 'accepted'
+                        ? 'bg-[rgba(125,211,192,0.05)] border border-[#7dd3c0]/20 opacity-70'
+                        : 'bg-[rgba(232,141,141,0.05)] border border-[#e88d8d]/20 opacity-60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${applicant.avatarColor} flex items-center justify-center flex-shrink-0`}>
+                        <span className="text-sm font-medium text-[#1e2026]">{applicant.initials}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[#f5f3ed]">{applicant.name}</p>
+                        <p className="text-xs text-[#b8b5ad] truncate">{app.message}</p>
+                        <p className="text-xs text-[#7dd3c0] mt-0.5">
+                          {new Date(app.appliedAt).toLocaleDateString('pl-PL')}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {app.status === 'pending' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleAcceptApplication(app.userId)}
+                          disabled={processingApp === app.userId}
+                          className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center hover:scale-110 transition-all duration-300 disabled:opacity-50"
+                          title="Zaakceptuj"
+                        >
+                          {processingApp === app.userId ? (
+                            <div className="w-4 h-4 border-2 border-[#1e2026] border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Check className="w-4 h-4 text-[#1e2026]" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleRejectApplication(app.userId)}
+                          disabled={processingApp === app.userId}
+                          className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#e88d8d] to-[#c96b6b] flex items-center justify-center hover:scale-110 transition-all duration-300 disabled:opacity-50"
+                          title="Odrzuć"
+                        >
+                          {processingApp === app.userId ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <X className="w-4 h-4 text-white" />
+                          )}
+                        </button>
+                      </div>
+                    )}
+                    
+                    {app.status === 'accepted' && (
+                      <div className="flex items-center gap-1 text-xs text-[#7dd3c0]">
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Zaakceptowano</span>
+                      </div>
+                    )}
+                    
+                    {app.status === 'rejected' && (
+                      <div className="flex items-center gap-1 text-xs text-[#e88d8d]">
+                        <XCircle className="w-4 h-4" />
+                        <span>Odrzucono</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Messages area */}
       <div className="flex-1 p-6 space-y-4 overflow-y-auto bg-gradient-to-b from-[#2a2d35] via-[#2a2d35] to-[#25292f]">
+        {/* Status zgłoszenia (dla zgłaszającego) */}
+        {!isOwner(listing) && showPendingStatus && (
+          <div className="flex justify-center">
+            <div className="backdrop-blur-md bg-[rgba(125,211,192,0.15)] border border-[#7dd3c0]/30 rounded-xl px-4 py-2 flex items-center gap-2">
+              <ClockIcon />
+              <span className="text-xs text-[#7dd3c0]">Zgłoszono – oczekiwanie na decyzję właściciela</span>
+            </div>
+          </div>
+        )}
+        
+        {!isOwner(listing) && showAcceptedStatus && (
+          <div className="flex justify-center">
+            <div className="backdrop-blur-md bg-[rgba(125,211,192,0.15)] border border-[#7dd3c0]/30 rounded-xl px-4 py-2 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-[#7dd3c0]" />
+              <span className="text-xs text-[#7dd3c0]">✓ Zgłoszenie zostało zaakceptowane!</span>
+            </div>
+          </div>
+        )}
+        
+        {!isOwner(listing) && showRejectedStatus && (
+          <div className="flex justify-center">
+            <div className="backdrop-blur-md bg-[rgba(232,141,141,0.15)] border border-[#e88d8d]/30 rounded-xl px-4 py-2 flex items-center gap-2">
+              <XCircle className="w-4 h-4 text-[#e88d8d]" />
+              <span className="text-xs text-[#e88d8d]">✗ Zgłoszenie zostało odrzucone</span>
+            </div>
+          </div>
+        )}
+
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7dd3c0]/20 to-[#a8d5ba]/10 flex items-center justify-center mb-4">
@@ -171,6 +427,45 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
 
       {/* Input area */}
       <div className="p-6 border-t border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(40,43,50,0.3)]">
+        {/* Przycisk "Zgłoś się!" (tylko dla osób NIE będących właścicielami) */}
+        {!isOwner(listing) && showApplyButton && (
+          <div className="mb-4">
+            <button
+              onClick={handleApply}
+              disabled={isApplying}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#89cff0] to-[#7dd3c0] text-[#1e2026] font-medium flex items-center justify-center gap-2 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 disabled:opacity-50"
+            >
+              {isApplying ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-[#1e2026] border-t-transparent rounded-full animate-spin" />
+                  Zgłaszanie...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4" />
+                  Zgłoś się!
+                </>
+              )}
+            </button>
+            <p className="text-xs text-[#b8b5ad] text-center mt-2">
+              Zgłoś się – właściciel będzie mógł Cię wybrać
+            </p>
+          </div>
+        )}
+
+        {/* Informacja dla właściciela o panelu zgłoszeń */}
+        {isOwner(listing) && listing.status === 'active' && hasPendingApplications && !showApplicationsPanel && (
+          <div className="mb-4">
+            <button
+              onClick={() => setShowApplicationsPanel(true)}
+              className="w-full py-2 rounded-xl backdrop-blur-md bg-[rgba(125,211,192,0.1)] border border-[#7dd3c0]/30 text-[#7dd3c0] text-sm flex items-center justify-center gap-2 hover:bg-[rgba(125,211,192,0.2)] transition-all duration-300"
+            >
+              <Users className="w-4 h-4" />
+              {pendingApplications.length} nowe zgłoszenie{ pendingApplications.length !== 1 ? 'nia' : '' } – kliknij aby zarządzać
+            </button>
+          </div>
+        )}
+
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] flex items-center justify-center shadow-md">

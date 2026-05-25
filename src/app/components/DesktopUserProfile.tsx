@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from "react";
 import { Edit, Bell, Package, Moon, Sun, HelpCircle, LogOut, ChevronRight } from "lucide-react";
+import { logout } from '../../data/appData';
+import { currentUser } from '../../data/appData';
 
 interface DesktopUserProfileProps {
 }
@@ -30,7 +32,7 @@ export default function DesktopUserProfile({}: DesktopUserProfileProps) {
               <div className="flex items-start gap-6 mb-6">
                 <div className="relative">
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-2xl shadow-[#7dd3c0]/30 border-4 border-[#2a2d35]">
-                    <span className="text-3xl font-medium text-[#1e2026]">JK</span>
+                    <span className="text-3xl font-medium text-[#1e2026]">{currentUser.initials}</span>
                   </div>
                   <button className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] flex items-center justify-center shadow-lg border-2 border-[#2a2d35] hover:scale-110 transition-transform duration-300">
                     <Edit className="w-4 h-4 text-[#1e2026]" />
@@ -38,9 +40,9 @@ export default function DesktopUserProfile({}: DesktopUserProfileProps) {
                 </div>
 
                 <div className="flex-1">
-                  <h2 className="text-xl font-medium text-[#f5f3ed] mb-1">Jan Kowalski</h2>
-                  <p className="text-sm text-[#b8b5ad] mb-4">jan.kowalski@email.com</p>
-                  <p className="text-xs text-[#b8b5ad]">Członek społeczności od stycznia 2024</p>
+                  <h2 className="text-xl font-medium text-[#f5f3ed] mb-1">{currentUser.name}</h2>
+                  <p className="text-sm text-[#b8b5ad] mb-4">{currentUser.email}</p>
+                  <p className="text-xs text-[#b8b5ad]">Członek społeczności od {currentUser.memberSince}</p>
                 </div>
               </div>
             </div>
@@ -105,8 +107,11 @@ export default function DesktopUserProfile({}: DesktopUserProfileProps) {
 
           <div className="col-span-1">
             <button
-              onClick={() => navigate('/onboarding')}
-              className="w-full backdrop-blur-md bg-gradient-to-br from-[rgba(232,141,141,0.1)] to-transparent border-2 border-[#e88d8d]/30 rounded-2xl p-4 hover:border-[#e88d8d]/50 hover:bg-[rgba(232,141,141,0.15)] hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 group"
+              onClick={() => {
+                logout();
+                navigate('/onboarding');
+              }}
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-[rgba(232,141,141,0.1)] border border-transparent hover:border-[#e88d8d]/30 transition-all duration-300 group"
             >
               <LogOut className="w-5 h-5 text-[#e88d8d]" />
               <span className="font-medium text-[#e88d8d]">Wyloguj się</span>
