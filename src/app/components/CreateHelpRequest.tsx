@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { ArrowLeft, ImagePlus, Check, Loader2, Wand2 } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { currentUser, addListing, favorCategories } from '../../data/appData';
+import { getCurrentUser, addListing, favorCategories } from '../../data/firebaseData';
 import { generateRandomHelpContent } from '../../data/textsAI_templates';
 
 export default function CreateHelpRequest() {
@@ -22,6 +22,8 @@ export default function CreateHelpRequest() {
   const uniqueCategories = [...new Set(categories)];
 
   const handleImageClick = () => {
+    // Dla demo używamy obrazka z Unsplash
+    // W przyszłości można dodać upload do Firebase Storage
     const demoImageUrl = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800';
     setImageUrl(demoImageUrl);
     setImageUploaded(true);
@@ -29,6 +31,7 @@ export default function CreateHelpRequest() {
 
   const handleGenerateAI = async () => {
     setIsGenerating(true);
+    // Symulacja opóźnienia AI
     await new Promise(resolve => setTimeout(resolve, 800));
     const generated = generateRandomHelpContent();
     setTitle(generated.title);
@@ -39,6 +42,7 @@ export default function CreateHelpRequest() {
   };
 
   const handleSubmit = async () => {
+    // Walidacja
     if (!title.trim()) {
       alert('Proszę podać tytuł prośby');
       return;
@@ -48,23 +52,37 @@ export default function CreateHelpRequest() {
       return;
     }
 
+    // Pobierz aktualnego użytkownika
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      alert('Musisz być zalogowany');
+      navigate('/auth');
+      return;
+    }
+
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    addListing({
-      ownerId: currentUser.id,
-      title: title.trim(),
-      description: description.trim(),
-      image: imageUploaded ? imageUrl : 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
-      status: 'active',
-      category: category,
-      listingType: 'request',
-      suggestedBarter: suggestedBarter || undefined,
-      suggestedPoints: suggestedPoints || undefined,
-    });
-
-    setIsLoading(false);
-    navigate('/my-listings');
+    try {
+      // Dodaj ogłoszenie do Firestore
+      await addListing({
+        ownerId: currentUser.id,
+        title: title.trim(),
+        description: description.trim(),
+        imageUrl: imageUploaded ? imageUrl : 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+        status: 'active',
+        category: category,
+        listingType: 'request',
+        suggestedBarter: suggestedBarter || undefined,
+        suggestedPoints: suggestedPoints || undefined,
+      });
+      
+      // Przekieruj do listy ogłoszeń
+      navigate('/my-listings');
+    } catch (error) {
+      console.error('Failed to add listing:', error);
+      alert('Wystąpił błąd podczas publikowania prośby. Spróbuj ponownie.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -86,14 +104,13 @@ export default function CreateHelpRequest() {
           <button
             onClick={handleGenerateAI}
             disabled={isGenerating}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#89cff0]/20 to-[#7dd3c0]/20 border border-[#7dd3c0]/40 text-[#7dd3c0] text-sm font-medium flex items-center gap-1"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#89cff0]/20 to-[#7dd3c0]/20 border border-[#7dd3c0]/40 text-[#7dd3c0] text-sm font-medium flex items-center gap-1 hover:scale-105 transition-all duration-300 disabled:opacity-50"
           >
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
             AI
           </button>
         </header>
 
-        {/* Reszta komponentu bez zmian - ten sam kod co wcześniej */}
         <div className="space-y-4">
           {/* Zdjęcie */}
           <div
@@ -106,6 +123,7 @@ export default function CreateHelpRequest() {
                   <ImagePlus className="w-8 h-8 text-[#7dd3c0]" />
                 </div>
                 <p className="text-sm text-[#f5f3ed] font-medium">Dodaj zdjęcie (opcjonalnie)</p>
+                <p className="text-xs text-[#b8b5ad] mt-1">Kliknij, aby dodać zdjęcie</p>
               </div>
             ) : (
               <ImageWithFallback
@@ -161,7 +179,7 @@ export default function CreateHelpRequest() {
               type="text"
               value={suggestedBarter}
               onChange={(e) => setSuggestedBarter(e.target.value)}
-              placeholder="Np. Domowe ciasto"
+              placeholder="Np. Domowe ciasto, pomoc w ogrodzie"
               className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl px-5 py-4 text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 transition-all duration-300"
             />
           </div>
@@ -197,17 +215,17 @@ export default function CreateHelpRequest() {
           <div className="flex gap-3 pt-4">
             <button
               onClick={() => navigate('/my-listings')}
-              className="flex-1 py-4 rounded-2xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 text-[#f5f3ed]"
+              className="flex-1 py-4 rounded-2xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 text-[#f5f3ed] hover:border-[#7dd3c0]/40 transition-all duration-300"
             >
               Anuluj
             </button>
             <button
               onClick={handleSubmit}
               disabled={isLoading}
-              className="flex-1 bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-1 bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-              {isLoading ? 'Publikuję...' : 'Opublikuj'}
+              {isLoading ? 'Publikowanie...' : 'Opublikuj prośbę'}
             </button>
           </div>
         </div>

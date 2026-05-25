@@ -1,12 +1,56 @@
 import { useNavigate } from 'react-router-dom';
-import { Camera, Trash2 } from 'lucide-react';
-import { currentUser } from '../../data/appData';
+import { useState, useEffect } from 'react';
+import { Camera, Trash2, Loader2 } from 'lucide-react';
+import { getCurrentUser, type User } from '../../data/firebaseData';
 
-interface DesktopEditProfileProps {
-}
+interface DesktopEditProfileProps {}
 
 export default function DesktopEditProfile({}: DesktopEditProfileProps) {
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<User | null>(getCurrentUser());
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [bio, setBio] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    setCurrentUser(user);
+    if (user) {
+      setName(user.name);
+      setEmail(user.email);
+      setBio(user.bio || '');
+    }
+  }, []);
+
+  const handleSave = async () => {
+    if (!currentUser) {
+      alert('Musisz być zalogowany');
+      navigate('/auth');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Funkcja aktualizacji profilu - do zaimplementowania w firebaseData
+      alert('Funkcja edycji profilu będzie dostępna wkrótce!');
+      navigate('/profile');
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      alert('Wystąpił błąd podczas zapisywania zmian');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!currentUser) {
+    return (
+      <div className="hidden lg:block min-h-screen bg-[#2a2d35] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
       <div className="max-w-[700px] mx-auto p-8 min-h-screen flex flex-col justify-center">
@@ -19,7 +63,7 @@ export default function DesktopEditProfile({}: DesktopEditProfileProps) {
           <div className="flex flex-col items-center mb-8">
             <div className="relative mb-6">
               <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-2xl shadow-[#7dd3c0]/30 border-4 border-[#2a2d35]">
-                <span className="text-3xl font-medium text-[#1e2026]">JK</span>
+                <span className="text-3xl font-medium text-[#1e2026]">{currentUser.initials}</span>
               </div>
               <button className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] flex items-center justify-center shadow-lg border-2 border-[#2a2d35] hover:scale-110 transition-transform duration-300">
                 <Camera className="w-5 h-5 text-[#1e2026]" />
@@ -33,7 +77,8 @@ export default function DesktopEditProfile({}: DesktopEditProfileProps) {
               <label className="text-sm text-[#b8b5ad] mb-2 block">Imię i nazwisko</label>
               <input
                 type="text"
-                defaultValue={currentUser.name}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl px-4 py-3 text-sm text-[#f5f3ed] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-lg focus:shadow-[#7dd3c0]/10 transition-all duration-300"
               />
             </div>
@@ -42,8 +87,20 @@ export default function DesktopEditProfile({}: DesktopEditProfileProps) {
               <label className="text-sm text-[#b8b5ad] mb-2 block">Email</label>
               <input
                 type="email"
-                defaultValue={currentUser.email}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl px-4 py-3 text-sm text-[#f5f3ed] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-lg focus:shadow-[#7dd3c0]/10 transition-all duration-300"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="text-sm text-[#b8b5ad] mb-2 block">Bio</label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Napisz kilka słów o sobie..."
+                rows={3}
+                className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl px-4 py-3 text-sm text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 transition-all duration-300 resize-none"
               />
             </div>
 
@@ -52,13 +109,13 @@ export default function DesktopEditProfile({}: DesktopEditProfileProps) {
               <input
                 type="number"
                 placeholder="28"
-                className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl px-4 py-3 text-sm text-[#f5f3ed] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-lg focus:shadow-[#7dd3c0]/10 transition-all duration-300"
+                className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl px-4 py-3 text-sm text-[#f5f3ed] focus:outline-none focus:border-[#7dd3c0]/40 transition-all duration-300"
               />
             </div>
 
             <div>
               <label className="text-sm text-[#b8b5ad] mb-2 block">Płeć</label>
-              <select className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl px-4 py-3 text-sm text-[#f5f3ed] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-lg focus:shadow-[#7dd3c0]/10 transition-all duration-300">
+              <select className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.4)] border border-[#7dd3c0]/20 rounded-2xl px-4 py-3 text-sm text-[#f5f3ed] focus:outline-none focus:border-[#7dd3c0]/40 transition-all duration-300">
                 <option>Mężczyzna</option>
                 <option>Kobieta</option>
                 <option>Inna</option>
@@ -90,10 +147,12 @@ export default function DesktopEditProfile({}: DesktopEditProfileProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={() => navigate('/profile')}
-              className="bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-3 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 hover:scale-105 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20"
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-3 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 hover:scale-105 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              Zapisz Zmiany
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+              {saving ? 'Zapisywanie...' : 'Zapisz Zmiany'}
             </button>
 
             <button className="backdrop-blur-md bg-transparent border-2 border-[#e88d8d]/40 text-[#e88d8d] font-medium py-3 rounded-2xl hover:bg-[rgba(232,141,141,0.1)] hover:border-[#e88d8d]/60 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2">

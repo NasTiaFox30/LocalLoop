@@ -1,21 +1,36 @@
-// contexts/PointsContext.tsx
-import { createContext, useContext, useState, useCallback, type ReactNode} from 'react';
-import type { Notification } from '../app/components/PointsNotification';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { setPointsNotificationCallback as setGlobalPointsNotificationCallback } from '../data/firebaseData'; // ⭐️ DODANE
+
+export interface PointsNotification {
+  id: string;
+  points: number;
+  message: string;
+  type: 'earned' | 'received' | 'bonus';
+  timestamp: number;
+}
 
 interface PointsContextType {
-  notifications: Notification[];
-  addNotification: (points: number, message: string, type: Notification['type']) => void;
+  notifications: PointsNotification[];
+  addNotification: (points: number, message: string, type: PointsNotification['type']) => void;
   removeNotification: (id: string) => void;
   showPointsEarned: (points: number, action: string, target?: string) => void;
 }
 
+// Globalny callback dla powiadomień
+let pointsNotificationCallback: ((points: number, action: string, target?: string) => void) | null = null;
+
+export const setPointsNotificationCallback = (callback: ((points: number, action: string, target?: string) => void) | null) => {
+  pointsNotificationCallback = callback;
+  setGlobalPointsNotificationCallback(callback);
+};
+
 const PointsContext = createContext<PointsContextType | undefined>(undefined);
 
 export function PointsProvider({ children }: { children: ReactNode }) {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<PointsNotification[]>([]);
 
-  const addNotification = useCallback((points: number, message: string, type: Notification['type']) => {
-    const newNotification: Notification = {
+  const addNotification = useCallback((points: number, message: string, type: PointsNotification['type']) => {
+    const newNotification: PointsNotification = {
       id: `points-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       points,
       message,
@@ -23,6 +38,11 @@ export function PointsProvider({ children }: { children: ReactNode }) {
       timestamp: Date.now(),
     };
     setNotifications(prev => [...prev, newNotification]);
+
+    // Auto-usuń po 4 sekundach
+    setTimeout(() => {
+      removeNotification(newNotification.id);
+    }, 4000);
   }, []);
 
   const removeNotification = useCallback((id: string) => {
@@ -31,30 +51,30 @@ export function PointsProvider({ children }: { children: ReactNode }) {
 
   const showPointsEarned = useCallback((points: number, action: string, target?: string) => {
     let message = '';
-    let type: Notification['type'] = 'earned';
+    let type: PointsNotification['type'] = 'earned';
 
     if (action === 'completed_help') {
       message = target 
-        ? `Otrzymałeś ${points} pkt. za pomoc przy "${target}"`
-        : `Otrzymałeś ${points} pkt. za udzieloną pomoc`;
+        ? `🎉 Otrzymałeś ${points} pkt. za pomoc przy "${target}"!`
+        : `🎉 Otrzymałeś ${points} pkt. za udzieloną pomoc!`;
       type = 'earned';
     } else if (action === 'received_help') {
       message = target
-        ? `Dostałeś ${points} pkt. za skorzystanie z oferty "${target}"`
-        : `Dostałeś ${points} pkt. za skorzystanie z oferty`;
+        ? `✨ Dostałeś ${points} pkt. za skorzystanie z oferty "${target}"!`
+        : `✨ Dostałeś ${points} pkt. za skorzystanie z oferty!`;
       type = 'received';
     } else if (action === 'bonus') {
       message = target
-        ? `Bonus ${points} pkt. za udostępnienie "${target}"`
-        : `Bonus ${points} pkt. za udostępnienie`;
+        ? `🌟 Bonus ${points} pkt. za udostępnienie "${target}" sąsiadom!`
+        : `🌟 Bonus ${points} pkt. za udzieloną pomoc!`;
       type = 'bonus';
     } else if (action === 'offer_shared') {
       message = target
-        ? `+${points} pkt. za udostępnienie "${target}" sąsiadom! 🌟`
-        : `+${points} pkt. za udzieloną pomoc! 🌟`;
+        ? `🏆 +${points} pkt. za udostępnienie "${target}" społeczności!`
+        : `🏆 +${points} pkt. za udzieloną pomoc!`;
       type = 'bonus';
     } else {
-      message = `Zdobyłeś ${points} punktów społecznościowych! 🎉`;
+      message = `🎯 Zdobyłeś ${points} punktów społecznościowych!`;
     }
 
     addNotification(points, message, type);

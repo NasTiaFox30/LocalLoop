@@ -1,108 +1,130 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Sparkles, UserPlus, CheckCircle, XCircle, Users, Check, X } from 'lucide-react';
 import { 
-  currentUser, 
+  getCurrentUser, 
   getUserById, 
   getListingById, 
   addApplication,
   getApplicationStatus,
   getApplicationsForListing,
   updateApplicationStatus,
-  type Application 
-} from '../../data/appData';
+  subscribeToMessages,
+  type Application,
+  type User,
+  type Listing,
+  type ChatMessage
+} from '../../data/firebaseData';
 import { useConversations } from '../../contexts/ConversationsContext';
-import type { Conversation } from '../../data/appData';
 
 interface DesktopSmartChatProps {
   conversationId?: string;
-  listingId?: string;
-  ownerId?: string;
 }
 
-export default function DesktopSmartChat({ conversationId, listingId, ownerId }: DesktopSmartChatProps) {
-  const { conversations, addConversation, addMessage, getMessagesForConversation } = useConversations();
+export default function DesktopSmartChat({ conversationId }: DesktopSmartChatProps) {
+  const { conversations, addMessage, markAsRead } = useConversations();
   const [inputValue, setInputValue] = useState('');
   const [applicationStatus, setApplicationStatus] = useState<'pending' | 'accepted' | 'rejected' | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
   const [showApplicationsPanel, setShowApplicationsPanel] = useState(false);
   const [processingApp, setProcessingApp] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [otherUser, setOtherUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [liveMessages, setLiveMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Lokalny stan dla konwersacji
-  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+  const isInitialMount = useRef(true);
 
-  // Sprawdzenie czy to rozmowa z samym sobą
-  const isSelfChat = ownerId === currentUser.id;
+  // Znajdź aktualną konwersację
+  const currentConversation = conversationId 
+    ? conversations.find(c => c.id === conversationId) 
+    : null;
 
-  // Sprawdzenie czy aktualny użytkownik jest właścicielem ogłoszenia
-  const isOwner = (listingToCheck?: any) => {
-    if (!listingToCheck) return false;
-    return listingToCheck.ownerId === currentUser.id;
-  };
-
+  // Subskrypcja wiadomości w czasie rzeczywistym
   useEffect(() => {
-    if (isSelfChat) {
-      setCurrentConversation(null);
+    if (!currentConversation) {
+      setLiveMessages([]);
       return;
     }
+    
+    const unsubscribe = subscribeToMessages(currentConversation.id, (messages) => {
+      setLiveMessages(messages);
+    });
+    
+    return () => unsubscribe();
+  }, [currentConversation?.id]); // ← używamy tylko ID
 
-    if (conversationId) {
-      const found = conversations.find(c => c.id === conversationId);
-      if (found) {
-        setCurrentConversation(found);
-      } else {
-        setCurrentConversation(null);
+  // Użyj liveMessages jako źródła wiadomości
+  const messages = liveMessages;
+
+  // Oznacz jako przeczytane gdy konwersacja jest otwarta (BEZ messages w zależnościach!)
+  useEffect(() => {
+    if (currentConversation && currentUser && !isInitialMount.current) {
+      markAsRead(currentConversation.id);
+    }
+    isInitialMount.current = false;
+  }, [currentConversation?.id, currentUser, markAsRead]);
+
+  // Załaduj dane ogłoszenia i drugiego użytkownika (tylko przy zmianie konwersacji)
+  useEffect(() => {
+    const loadData = async () => {
+      if (!currentConversation || !currentUser) {
+        setLoading(false);
+        return;
       }
-    } else if (listingId && ownerId && !isSelfChat) {
-      const found = conversations.find(
-        c => c.listingId === listingId && c.participants.includes(ownerId)
-      );
-      if (found) {
-        setCurrentConversation(found);
-      } else {
-        // Tworzymy nową rozmowę
-        const newConv = addConversation(listingId, ownerId);
-        setCurrentConversation(newConv);
+      
+      setLoading(true);
+      try {
+        const otherUserId = currentConversation.participants.find(p => p !== currentUser.id);
+        if (otherUserId) {
+          const userData = await getUserById(otherUserId);
+          setOtherUser(userData);
+        }
+        
+        const listingData = await getListingById(currentConversation.listingId);
+        setListing(listingData);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        setLoading(false);
       }
-    } else {
-      setCurrentConversation(null);
-    }
-  }, [conversationId, listingId, ownerId, conversations, addConversation, isSelfChat]);
+    };
+    
+    loadData();
+  }, [currentConversation?.id, currentUser]); // ← tylko ID
 
-  // Pobieranie danych zależnych od currentConversation
-  const listing = currentConversation 
-    ? getListingById(currentConversation.listingId) 
-    : (listingId ? getListingById(listingId) : null);
-
-  const otherUser = currentConversation
-    ? getUserById(currentConversation.participants.find(p => p !== currentUser.id)!)
-    : (ownerId && !isSelfChat ? getUserById(ownerId) : null);
-
-  const messages = currentConversation ? getMessagesForConversation(currentConversation.id) : [];
-
-  // Sprawdź status zgłoszenia dla tego ogłoszenia (dla osoby zgłaszającej)
+  // Sprawdź status zgłoszenia
   useEffect(() => {
-    if (listing && !isOwner(listing) && listing.status === 'active') {
-      const status = getApplicationStatus(listing.id, currentUser.id);
-      setApplicationStatus(status);
-    } else {
-      setApplicationStatus(null);
-    }
-  }, [listing]);
+    const checkStatus = async () => {
+      if (listing && listing.ownerId !== currentUser?.id && listing.status === 'active' && currentUser) {
+        const status = await getApplicationStatus(listing.id, currentUser.id);
+        setApplicationStatus(status);
+      } else {
+        setApplicationStatus(null);
+      }
+    };
+    checkStatus();
+  }, [listing?.id, currentUser]); // ← tylko ID listingu
 
-  // Pobierz wszystkie zgłoszenia dla ogłoszenia (dla właściciela)
+  // Pobierz zgłoszenia
   useEffect(() => {
-    if (listing && isOwner(listing) && listing.status === 'active') {
-      const apps = getApplicationsForListing(listing.id);
-      setApplications(apps);
-    } else {
-      setApplications([]);
-    }
-  }, [listing]);
+    const loadApplications = async () => {
+      if (listing && listing.ownerId === currentUser?.id && listing.status === 'active') {
+        const apps = await getApplicationsForListing(listing.id);
+        setApplications(apps);
+      } else {
+        setApplications([]);
+      }
+    };
+    loadApplications();
+  }, [listing?.id, currentUser]); // ← tylko ID listingu
 
+  // Auto-scroll do najnowszej wiadomości (bez ponownego uruchamiania efektów)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!isInitialMount.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   const icebreakers = [
@@ -111,77 +133,64 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
     "Chętnie pomogę w ogrodzie w zamian 🌱",
   ];
 
-  const handleSendMessage = (text: string) => {
-    if (!text.trim() || !currentConversation || isSelfChat) return;
-    addMessage(currentConversation.id, text);
+  const handleSendMessage = useCallback(async (text: string) => {
+    if (!text.trim() || !currentConversation || !currentUser) return;
+    await addMessage(currentConversation.id, text);
     setInputValue('');
-  };
+  }, [currentConversation, currentUser, addMessage]);
 
-  const handleApply = async () => {
-    if (!listing || !otherUser || isOwner(listing) || listing.status !== 'active') return;
+  const handleApply = useCallback(async () => {
+    if (!listing || !otherUser || listing.ownerId === currentUser?.id || listing.status !== 'active' || !currentUser) return;
     
     setIsApplying(true);
     
     const defaultMessage = `Chcę pomóc przy "${listing.title}". ${listing.listingType === 'offer' ? 'Chciałbym/chciałabym skorzystać z tej oferty.' : 'Chciałbym/chciałabym pomóc.'}`;
     
-    const application = addApplication(listing.id, currentUser.id, defaultMessage);
+    const application = await addApplication(listing.id, defaultMessage);
     
     if (application && currentConversation) {
       setApplicationStatus('pending');
-      addMessage(currentConversation.id, `📋 Zgłosiłem/am się przy tym ogłoszeniu. Oczekuję na decyzję właściciela.`);
+      await addMessage(currentConversation.id, `📋 Zgłosiłem/am się przy tym ogłoszeniu. Oczekuję na decyzję właściciela.`);
     }
     
     setIsApplying(false);
-  };
+  }, [listing, otherUser, currentUser, currentConversation, addMessage]);
 
-  const handleAcceptApplication = async (applicationUserId: string) => {
+  // ... reszta komponentu bez zmian (handleAcceptApplication, handleRejectApplication, JSX)
+  const handleAcceptApplication = useCallback(async (applicationUserId: string) => {
     if (!listing) return;
     setProcessingApp(applicationUserId);
     
-    const updated = updateApplicationStatus(listing.id, applicationUserId, 'accepted');
+    const updated = await updateApplicationStatus(listing.id, applicationUserId, 'accepted');
     
     if (updated && currentConversation) {
-      const applicant = getUserById(applicationUserId);
-      addMessage(currentConversation.id, `✅ Zaakceptowałem/am zgłoszenie od ${applicant?.name}. Zakończ ogłoszenie w panelu "Moje Ogłoszenia" aby przyznać punkty.`);
-      // Odśwież listę zgłoszeń
-      setApplications(getApplicationsForListing(listing.id));
-      // Wyślij wiadomość do zgłaszającego (w konwersacji)
-      addMessage(currentConversation.id, `@${applicant?.name} Twoje zgłoszenie zostało zaakceptowane!`);
+      const applicant = await getUserById(applicationUserId);
+      await addMessage(currentConversation.id, `✅ Zaakceptowałem/am zgłoszenie od ${applicant?.name}. Zakończ ogłoszenie w panelu "Moje Ogłoszenia" aby przyznać punkty.`);
+      const refreshedApps = await getApplicationsForListing(listing.id);
+      setApplications(refreshedApps);
     }
     
     setProcessingApp(null);
-  };
+  }, [listing, currentConversation, addMessage]);
 
-  const handleRejectApplication = async (applicationUserId: string) => {
+  const handleRejectApplication = useCallback(async (applicationUserId: string) => {
     if (!listing) return;
     setProcessingApp(applicationUserId);
     
-    const updated = updateApplicationStatus(listing.id, applicationUserId, 'rejected');
+    const updated = await updateApplicationStatus(listing.id, applicationUserId, 'rejected');
     
     if (updated && currentConversation) {
-      const applicant = getUserById(applicationUserId);
-      addMessage(currentConversation.id, `❌ Odrzuciłem/am zgłoszenie od ${applicant?.name}.`);
-      // Odśwież listę zgłoszeń
-      setApplications(getApplicationsForListing(listing.id));
+      const applicant = await getUserById(applicationUserId);
+      await addMessage(currentConversation.id, `❌ Odrzuciłem/am zgłoszenie od ${applicant?.name}.`);
+      const refreshedApps = await getApplicationsForListing(listing.id);
+      setApplications(refreshedApps);
     }
     
     setProcessingApp(null);
-  };
+  }, [listing, currentConversation, addMessage]);
 
-  // Jeśli to rozmowa z samym sobą
-  if (isSelfChat) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <Sparkles className="w-16 h-16 text-[#7dd3c0] mx-auto mb-4 opacity-50" />
-          <h3 className="text-xl font-medium text-[#f5f3ed] mb-2">Nie możesz czatować sam ze sobą</h3>
-          <p className="text-sm text-[#b8b5ad]">To jest Twoje własne ogłoszenie.</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!otherUser || !listing) {
+  // Reszta JSX bez zmian (zwracany komponent)
+  if (!conversationId) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
@@ -193,18 +202,42 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
     );
   }
 
-  const showApplyButton = !isOwner(listing) && 
-                          listing.status === 'active' && 
-                          applicationStatus === null;
+  if (loading || !currentUser) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
+  if (!currentConversation) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <Sparkles className="w-16 h-16 text-[#7dd3c0] mx-auto mb-4 opacity-50" />
+          <h3 className="text-xl font-medium text-[#f5f3ed] mb-2">Konwersacja nie znaleziona</h3>
+          <p className="text-sm text-[#b8b5ad]">Wybierz inną rozmowę z listy</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!otherUser || !listing) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const isOwner = listing.ownerId === currentUser.id;
+  const showApplyButton = !isOwner && listing.status === 'active' && applicationStatus === null;
   const showPendingStatus = applicationStatus === 'pending';
   const showAcceptedStatus = applicationStatus === 'accepted';
   const showRejectedStatus = applicationStatus === 'rejected';
-
   const pendingApplications = applications.filter(a => a.status === 'pending');
   const hasPendingApplications = pendingApplications.length > 0;
 
-  // Komponent zastępczy dla Clock
   const ClockIcon = () => (
     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="10" />
@@ -214,7 +247,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      {/* Header */}
+      {/* Header - bez zmian */}
       <div className="border-b border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(40,43,50,0.3)] p-6">
         <div className="flex items-center gap-3">
           <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center shadow-lg`}>
@@ -232,8 +265,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
               </div>
             </div>
           </div>
-          {/* Przycisk do panelu zgłoszeń (tylko dla właściciela) */}
-          {isOwner(listing) && listing.status === 'active' && (
+          {isOwner && listing.status === 'active' && (
             <button
               onClick={() => setShowApplicationsPanel(!showApplicationsPanel)}
               className={`relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${
@@ -253,22 +285,19 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
         </div>
       </div>
 
-      {/* Panel zgłoszeń (dla właściciela) */}
-      {showApplicationsPanel && isOwner(listing) && listing.status === 'active' && (
+      {/* Panel zgłoszeń - bez zmian */}
+      {showApplicationsPanel && isOwner && listing.status === 'active' && (
         <div className="border-b border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(125,211,192,0.05)] p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-[#f5f3ed] flex items-center gap-2">
               <Users className="w-4 h-4 text-[#7dd3c0]" />
               Zgłoszenia ({applications.length})
             </h3>
-            <button
-              onClick={() => setShowApplicationsPanel(false)}
-              className="text-xs text-[#b8b5ad] hover:text-[#7dd3c0]"
-            >
+            <button onClick={() => setShowApplicationsPanel(false)} className="text-xs text-[#b8b5ad] hover:text-[#7dd3c0]">
               Zamknij
             </button>
           </div>
-          
+
           {applications.length === 0 ? (
             <p className="text-sm text-[#b8b5ad] text-center py-4">
               Brak zgłoszeń. Poinformuj sąsiadów w czacie, żeby się zgłosili!
@@ -276,9 +305,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {applications.map((app) => {
-                const applicant = getUserById(app.userId);
-                if (!applicant) return null;
-                
+
                 return (
                   <div
                     key={app.userId}
@@ -291,14 +318,14 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
                     }`}
                   >
                     <div className="flex items-center gap-3 flex-1">
-                      <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${applicant.avatarColor} flex items-center justify-center flex-shrink-0`}>
-                        <span className="text-sm font-medium text-[#1e2026]">{applicant.initials}</span>
+                      <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${app.userAvatarColor} flex items-center justify-center flex-shrink-0`}>
+                        <span className="text-sm font-medium text-[#1e2026]">{app.userInitials}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[#f5f3ed]">{applicant.name}</p>
+                        <p className="text-sm font-medium text-[#f5f3ed]">{app.userName}</p>
                         <p className="text-xs text-[#b8b5ad] truncate">{app.message}</p>
                         <p className="text-xs text-[#7dd3c0] mt-0.5">
-                          {new Date(app.appliedAt).toLocaleDateString('pl-PL')}
+                          {app.appliedAt?.toDate?.() ? new Date(app.appliedAt.toDate()).toLocaleDateString('pl-PL') : new Date().toLocaleDateString('pl-PL')}
                         </p>
                       </div>
                     </div>
@@ -355,8 +382,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
 
       {/* Messages area */}
       <div className="flex-1 p-6 space-y-4 overflow-y-auto bg-gradient-to-b from-[#2a2d35] via-[#2a2d35] to-[#25292f]">
-        {/* Status zgłoszenia (dla zgłaszającego) */}
-        {!isOwner(listing) && showPendingStatus && (
+        {!isOwner && showPendingStatus && (
           <div className="flex justify-center">
             <div className="backdrop-blur-md bg-[rgba(125,211,192,0.15)] border border-[#7dd3c0]/30 rounded-xl px-4 py-2 flex items-center gap-2">
               <ClockIcon />
@@ -365,7 +391,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
           </div>
         )}
         
-        {!isOwner(listing) && showAcceptedStatus && (
+        {!isOwner && showAcceptedStatus && (
           <div className="flex justify-center">
             <div className="backdrop-blur-md bg-[rgba(125,211,192,0.15)] border border-[#7dd3c0]/30 rounded-xl px-4 py-2 flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-[#7dd3c0]" />
@@ -374,7 +400,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
           </div>
         )}
         
-        {!isOwner(listing) && showRejectedStatus && (
+        {!isOwner && showRejectedStatus && (
           <div className="flex justify-center">
             <div className="backdrop-blur-md bg-[rgba(232,141,141,0.15)] border border-[#e88d8d]/30 rounded-xl px-4 py-2 flex items-center gap-2">
               <XCircle className="w-4 h-4 text-[#e88d8d]" />
@@ -396,8 +422,10 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
             </p>
           </div>
         )}
+        
         {messages.map((msg) => {
-          const isFromMe = msg.fromUserId === currentUser.id;
+          const isFromMe = msg.fromUserId === currentUser?.id;
+          const messageDate = msg.timestamp?.toDate?.() || new Date(msg.timestamp as any);
           return (
             <div key={msg.id} className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}>
               <div className={`flex items-end gap-2 max-w-[70%] ${isFromMe ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -415,7 +443,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
                 >
                   <p className="text-sm leading-relaxed">{msg.text}</p>
                   <p className={`text-[10px] mt-1 ${isFromMe ? 'text-[#1e2026]/60' : 'text-[#2a2d35]/50'}`}>
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
               </div>
@@ -427,8 +455,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
 
       {/* Input area */}
       <div className="p-6 border-t border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(40,43,50,0.3)]">
-        {/* Przycisk "Zgłoś się!" (tylko dla osób NIE będących właścicielami) */}
-        {!isOwner(listing) && showApplyButton && (
+        {!isOwner && showApplyButton && (
           <div className="mb-4">
             <button
               onClick={handleApply}
@@ -453,8 +480,7 @@ export default function DesktopSmartChat({ conversationId, listingId, ownerId }:
           </div>
         )}
 
-        {/* Informacja dla właściciela o panelu zgłoszeń */}
-        {isOwner(listing) && listing.status === 'active' && hasPendingApplications && !showApplicationsPanel && (
+        {isOwner && listing.status === 'active' && hasPendingApplications && !showApplicationsPanel && (
           <div className="mb-4">
             <button
               onClick={() => setShowApplicationsPanel(true)}

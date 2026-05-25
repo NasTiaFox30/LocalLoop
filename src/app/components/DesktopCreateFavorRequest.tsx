@@ -2,11 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Camera, Check, ArrowLeft, Loader2, Wand2 } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { currentUser, addListing, favorCategories } from '../../data/appData';
+import { getCurrentUser, addListing, favorCategories } from '../../data/firebaseData';
 import { generateRandomOfferContent } from '../../data/textsAI_templates';
 
-interface DesktopCreateFavorRequestProps {
-}
+interface DesktopCreateFavorRequestProps {}
 
 export default function DesktopCreateFavorRequest({}: DesktopCreateFavorRequestProps) {
   const navigate = useNavigate();
@@ -55,23 +54,33 @@ export default function DesktopCreateFavorRequest({}: DesktopCreateFavorRequestP
       return;
     }
 
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      alert('Musisz być zalogowany');
+      navigate('/auth');
+      return;
+    }
+
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    addListing({
-      ownerId: currentUser.id,
-      title: title.trim(),
-      description: description.trim(),
-      image: imageUrl,
-      status: 'active',
-      category: category,
-      listingType: 'offer',
-      suggestedBarter: suggestedBarter || undefined,
-      suggestedPoints: suggestedPoints || undefined,
-    });
-
-    setIsLoading(false);
-    navigate('/my-listings');
+    try {
+      await addListing({
+        ownerId: currentUser.id,
+        title: title.trim(),
+        description: description.trim(),
+        imageUrl: imageUrl,
+        status: 'active',
+        category: category,
+        listingType: 'offer',
+        suggestedBarter: suggestedBarter || undefined,
+        suggestedPoints: suggestedPoints || undefined,
+      });
+      navigate('/my-listings');
+    } catch (error) {
+      console.error('Failed to add listing:', error);
+      alert('Wystąpił błąd podczas publikowania ogłoszenia');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

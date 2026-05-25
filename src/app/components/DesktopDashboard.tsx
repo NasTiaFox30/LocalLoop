@@ -1,23 +1,56 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Leaf, Activity, Heart, MessageCircle, Mail, TrendingUp, Users, Sparkles } from 'lucide-react';
-import { currentUser, communityStats, getActivityFeed, getUserById, getListingById, getActionText, timeAgo } from '../../data/appData';
-import type { ActivityItem } from '../../data/appData';
+import { getCurrentUser, getCommunityStats, getActivityFeed, subscribeToActivityFeed, type User, type CommunityStats, type ActivityItem } from '../../data/firebaseData';
 
 interface DesktopDashboardProps {
-  onNavigate?: (s: string) => void;
   onOpenDetail: (item: ActivityItem) => void;
 }
 
 export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps) {
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<User | null>(getCurrentUser());
+  const [communityStats, setCommunityStats] = useState<CommunityStats>({ communityHealth: 0, totalExchanges: 0, impactScore: 0 });
+  const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([]);
   const [likedItems, setLikedItems] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const stats = await getCommunityStats();
+        setCommunityStats(stats);
+        
+        const feed = await getActivityFeed(10);
+        setActivityFeed(feed);
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
+    
+    const unsubscribe = subscribeToActivityFeed((activities) => {
+      setActivityFeed(activities);
+    }, 10);
+    
+    return () => unsubscribe();
+  }, []);
 
   const toggleLike = (id: string) => {
     setLikedItems((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
   };
 
-  const activityFeed = useMemo(() => getActivityFeed(), []);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#2a2d35] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
@@ -25,19 +58,19 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
         <header className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-medium text-[#f5f3ed] mb-2">Witaj ponownie, {currentUser.name.split(' ')[0]}! 👋</h1>
+              <h1 className="text-2xl font-medium text-[#f5f3ed] mb-2">Witaj ponownie, {currentUser?.name?.split(' ')[0] || 'Gościu'}! 👋</h1>
               <p className="text-sm text-[#b8b5ad]">Odkryj, co nowego w Twojej społeczności</p>
             </div>
             <button
               onClick={() => navigate('/profile')}
               className="w-14 h-14 rounded-full bg-gradient-to-br from-[#89cff0]/20 to-[#7dd3c0]/20 border-2 border-[#7dd3c0]/30 flex items-center justify-center backdrop-blur-sm hover:border-[#7dd3c0]/50 hover:scale-105 transition-all duration-300 shadow-lg"
             >
-              <span className="text-lg font-medium text-[#7dd3c0]">{currentUser.initials}</span>
+              <span className="text-lg font-medium text-[#7dd3c0]">{currentUser?.initials || '?'}</span>
             </button>
           </div>
         </header>
 
-        {/* Quick action cards */}
+        {/* Quick action cards - bez zmian w JSX */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <button
             onClick={() => navigate('/request-help')}
@@ -79,13 +112,10 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
             <div className="relative z-10 flex flex-col h-full">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#a8d5ba] to-[#c2e7d9] flex items-center justify-center mb-auto group-hover:scale-110 transition-transform duration-500 shadow-2xl shadow-[#a8d5ba]/30 relative">
                 <Mail className="w-8 h-8 text-[#1e2026]" />
-                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] border-2 border-[#2a2d35] flex items-center justify-center shadow-lg">
-                  <span className="text-xs font-medium text-[#1e2026]">2</span>
-                </div>
               </div>
               <div>
                 <h3 className="font-medium text-lg text-[#f5f3ed] mb-1">Wiadomości</h3>
-                <p className="text-sm text-[#b8b5ad]">2 nieprzeczytane</p>
+                <p className="text-sm text-[#b8b5ad]">Sprawdź konwersacje</p>
               </div>
             </div>
           </button>
@@ -99,25 +129,25 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
               <Activity className="w-6 h-6 text-[#7dd3c0]" />
             </div>
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-              {activityFeed.map((item) => {
-                const user = getUserById(item.userId);
-                const listing = getListingById(item.listingId);
-                if (!user || !listing) return null;
-
-                return (
+              {activityFeed.length === 0 ? (
+                <p className="text-center text-[#b8b5ad] py-8">Brak aktywności</p>
+              ) : (
+                activityFeed.map((item) => (
                   <div
                     key={item.id}
                     onClick={() => onOpenDetail(item)}
                     className="flex items-start gap-4 p-4 rounded-2xl backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 hover:border-[#7dd3c0]/30 hover:scale-[1.01] transition-all duration-300 group cursor-pointer shadow-lg hover:shadow-xl hover:shadow-[#7dd3c0]/10"
                   >
-                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${user.avatarColor} flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                      <span className="text-base font-medium text-[#1e2026]">{user.initials}</span>
+                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${item.userAvatarColor} flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <span className="text-base font-medium text-[#1e2026]">{item.userInitials}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-base text-[#f5f3ed]">
-                        <span className="font-medium text-[#7dd3c0]">{user.name}</span> {getActionText(item.action, listing, user)}
+                        <span className="font-medium text-[#7dd3c0]">{item.userName}</span>{' '}
+                        {item.action === 'created_offer' && `udostępnia: ${item.listingTitle}`}
+                        {item.action === 'created_request' && `prosi o pomoc: ${item.listingTitle}`}
+                        {item.action === 'completed_exchange' && 'zakończył/a udaną wymianę'}
                       </p>
-                      <p className="text-sm text-[#b8b5ad] mt-1">{timeAgo(item.timestamp)}</p>
                       <div className="flex gap-4 mt-3">
                         <button
                           onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }}
@@ -132,8 +162,8 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
                       </div>
                     </div>
                   </div>
-                );
-              })}
+                ))
+              )}
             </div>
           </div>
 
@@ -157,14 +187,14 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
                     <span className="text-sm text-[#b8b5ad]">Wymian</span>
                     <Package className="w-4 h-4 text-[#a8d5ba]" />
                   </div>
-                  <div className="text-3xl font-medium bg-gradient-to-br from-[#a8d5ba] to-[#7dd3c0] bg-clip-text text-transparent">{currentUser.exchangesCount}</div>
+                  <div className="text-3xl font-medium bg-gradient-to-br from-[#a8d5ba] to-[#7dd3c0] bg-clip-text text-transparent">{currentUser?.exchangesCount || 0}</div>
                 </div>
                 <div className="backdrop-blur-sm bg-gradient-to-br from-[#89cff0]/10 to-transparent rounded-2xl border border-[#89cff0]/20 p-4 hover:border-[#89cff0]/40 hover:scale-105 transition-all duration-300 shadow-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-[#b8b5ad]">Impact Score</span>
                     <Users className="w-4 h-4 text-[#89cff0]" />
                   </div>
-                  <div className="text-3xl font-medium bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] bg-clip-text text-transparent">{currentUser.impactScore}</div>
+                  <div className="text-3xl font-medium bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] bg-clip-text text-transparent">{currentUser?.impactScore || 0}</div>
                 </div>
               </div>
             </div>

@@ -1,7 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { Leaf, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
-import { onboardingData } from '../../data/appData';
+
+// Przenieś dane onboardingowe tutaj lub zaimportuj z firebaseData
+const onboardingData = {
+  tagline: 'Buduj lokalną społeczność, dziel się zasobami, redukuj ślad węglowy.',
+  stats: [
+    { label: 'Wymień', value: '150+' },
+    { label: 'Oszczędź', value: '85%' },
+    { label: 'Połącz', value: '100+' },
+  ],
+};
 
 export default function Onboarding() {
   const navigate = useNavigate();

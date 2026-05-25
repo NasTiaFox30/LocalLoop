@@ -1,96 +1,168 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft, Send, Sparkles, UserPlus, CheckCircle, XCircle, Users, Check, X } from 'lucide-react';
 import { 
-  currentUser, 
+  getCurrentUser, 
   getUserById, 
   getListingById, 
   addApplication,
   getApplicationStatus,
   getApplicationsForListing,
   updateApplicationStatus,
-  type Application 
-} from '../../data/appData';
+  subscribeToMessages,
+  markMessagesAsRead,  // ← DODANE: bezpośrednia funkcja z firebaseData
+  type Application,
+  type ChatMessage
+} from '../../data/firebaseData';
 import { useConversations } from '../../contexts/ConversationsContext';
 
 export default function SmartChat() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addConversation, addMessage, getMessagesForConversation, conversations } = useConversations();
+  const { addConversation, addMessage, conversations } = useConversations(); // ← Uwaga: markAsRead nie ma w context?
   const [inputValue, setInputValue] = useState('');
   const [applicationStatus, setApplicationStatus] = useState<'pending' | 'accepted' | 'rejected' | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
   const [showApplicationsPanel, setShowApplicationsPanel] = useState(false);
   const [processingApp, setProcessingApp] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [liveMessages, setLiveMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevConversationIdRef = useRef<string | null>(null);
+  const isInitialMount = useRef(true);
 
   const conversationId = location.state?.conversationId;
   const listingId = location.state?.listingId;
   const ownerId = location.state?.ownerId;
 
+  useEffect(() => {
+    setCurrentUser(getCurrentUser());
+  }, []);
+
   // Zabezpieczenie: jeśli ownerId to aktualny użytkownik, przekieruj
   useEffect(() => {
-    if (ownerId && ownerId === currentUser.id) {
-      // Nie można czatować samemu ze sobą
+    if (ownerId && ownerId === currentUser?.id) {
       navigate('/messages', { replace: true });
     }
-  }, [ownerId, navigate]);
+  }, [ownerId, currentUser, navigate]);
 
-  // Отримуємо розмову напряму з контексту на основі пропсів
   const conversation = conversationId 
     ? conversations.find(c => c.id === conversationId)
     : (listingId && ownerId 
         ? conversations.find(c => c.listingId === listingId && c.participants.includes(ownerId))
         : null);
 
-  // Якщо listingId немає в state (перехід з інбоксу), беремо його з самої розмови
-  const listing = listingId 
-    ? getListingById(listingId) 
-    : (conversation ? getListingById(conversation.listingId) : null);
+  const [listing, setListing] = useState<any>(null);
+  const [otherUser, setOtherUser] = useState<any>(null);
 
-  const otherUser = conversation
-    ? getUserById(conversation.participants.find(p => p !== currentUser.id)!)
-    : (ownerId ? getUserById(ownerId) : null);
-
-  // Sprawdzenie czy to rozmowa z samym sobą
-  const isSelfChat = otherUser?.id === currentUser.id;
-  
-  // Sprawdzenie czy aktualny użytkownik jest właścicielem ogłoszenia
-  const isOwner = listing?.ownerId === currentUser.id;
-
-  // Sprawdź status zgłoszenia dla tego ogłoszenia (dla osoby zgłaszającej)
+  // Subskrypcja wiadomości w czasie rzeczywistym
   useEffect(() => {
-    if (listing && !isOwner && listing.status === 'active') {
-      const status = getApplicationStatus(listing.id, currentUser.id);
-      setApplicationStatus(status);
-    } else {
-      setApplicationStatus(null);
+    if (!conversation) {
+      setLiveMessages([]);
+      return;
     }
-  }, [listing, isOwner]);
+    
+    const unsubscribe = subscribeToMessages(conversation.id, (messages) => {
+      setLiveMessages(messages);
+    });
+    
+    return () => unsubscribe();
+  }, [conversation?.id]);
 
-  // Pobierz wszystkie zgłoszenia dla ogłoszenia (dla właściciela)
+  // Użyj liveMessages jako źródła wiadomości
+  const messages = liveMessages;
+
+  // ⭐️ DODANE: Oznacz wiadomości jako przeczytane gdy otwarto konwersację
   useEffect(() => {
-    if (listing && isOwner && listing.status === 'active') {
-      const apps = getApplicationsForListing(listing.id);
-      setApplications(apps);
-    } else {
-      setApplications([]);
+    const markAsRead = async () => {
+      if (conversation && currentUser && !isInitialMount.current) {
+        try {
+          await markMessagesAsRead(conversation.id, currentUser.id);
+          console.log('✅ Oznaczono wiadomości jako przeczytane dla konwersacji:', conversation.id);
+        } catch (error) {
+          console.error('Failed to mark messages as read:', error);
+        }
+      }
+    };
+    
+    markAsRead();
+  }, [conversation?.id, currentUser]); // ← wywołaj gdy zmieni się konwersacja lub użytkownik
+
+  // Scrolluj tylko gdy to ta sama konwersacja
+  useEffect(() => {
+    const currentConvId = conversation?.id ?? null;
+    const isSameConversation = prevConversationIdRef.current === currentConvId;
+    
+    if (currentConvId && (isSameConversation || isInitialMount.current)) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [listing, isOwner]);
-
-  // Tworzymy nową rozmowę tylko wtedy, gdy jej rzeczywiście nie ma
-  useEffect(() => {
-    if (!conversation && listing && otherUser && !isSelfChat) {
-      addConversation(listing.id, otherUser.id);
-    }
-  }, [conversation, listing, otherUser, addConversation, isSelfChat]);
-
-  const messages = conversation ? getMessagesForConversation(conversation.id) : [];
+    
+    prevConversationIdRef.current = currentConvId;
+    isInitialMount.current = false;
+  }, [messages, conversation?.id]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    const loadData = async () => {
+      const listId = listingId || conversation?.listingId;
+      if (listId) {
+        const listingData = await getListingById(listId);
+        setListing(listingData);
+      }
+      
+      let otherUserId: string | undefined;
+      if (conversation && currentUser) {
+        otherUserId = conversation.participants.find(p => p !== currentUser.id);
+      } else if (ownerId) {
+        otherUserId = ownerId;
+      }
+      
+      if (otherUserId) {
+        const userData = await getUserById(otherUserId);
+        setOtherUser(userData);
+      }
+    };
+    loadData();
+  }, [conversationId, listingId, ownerId, conversation, currentUser]);
+
+  const isSelfChat = otherUser?.id === currentUser?.id;
+  const isOwner = listing?.ownerId === currentUser?.id;
+
+  // Sprawdź status zgłoszenia
+  useEffect(() => {
+    const checkStatus = async () => {
+      if (listing && !isOwner && listing.status === 'active' && currentUser) {
+        const status = await getApplicationStatus(listing.id, currentUser.id);
+        setApplicationStatus(status);
+      } else {
+        setApplicationStatus(null);
+      }
+    };
+    checkStatus();
+  }, [listing?.id, isOwner, currentUser]);
+
+  // Pobierz zgłoszenia
+  useEffect(() => {
+    const loadApplications = async () => {
+      if (listing && isOwner && listing.status === 'active') {
+        const apps = await getApplicationsForListing(listing.id);
+        setApplications(apps);
+      } else {
+        setApplications([]);
+      }
+    };
+    loadApplications();
+  }, [listing?.id, isOwner]);
+
+  // Tworzymy nową rozmowę
+  useEffect(() => {
+    const createConv = async () => {
+      if (!conversation && listing && otherUser && !isSelfChat && currentUser) {
+        await addConversation(listing.id, otherUser.id);
+      }
+    };
+    createConv();
+  }, [conversation, listing, otherUser, addConversation, isSelfChat, currentUser]);
 
   const icebreakers = [
     "Hej, mogę w zamian przynieść domową kawę! ☕",
@@ -98,69 +170,62 @@ export default function SmartChat() {
     "Chętnie pomogę w ogrodzie w zamian 🌱",
   ];
 
-  const handleSendMessage = (text: string) => {
-    if (!text.trim() || !conversation || isSelfChat) return;
-    addMessage(conversation.id, text);
+  const handleSendMessage = useCallback(async (text: string) => {
+    if (!text.trim() || !conversation || isSelfChat || !currentUser) return;
+    await addMessage(conversation.id, text);
     setInputValue('');
-  };
+  }, [conversation, isSelfChat, currentUser, addMessage]);
 
-  const handleApply = async () => {
-    if (!listing || !otherUser || isOwner || listing.status !== 'active') return;
+  const handleApply = useCallback(async () => {
+    if (!listing || !otherUser || isOwner || listing.status !== 'active' || !currentUser) return;
     
     setIsApplying(true);
     
     const defaultMessage = `Chcę pomóc przy "${listing.title}". ${listing.listingType === 'offer' ? 'Chciałbym/chciałabym skorzystać z tej oferty.' : 'Chciałbym/chciałabym pomóc.'}`;
     
-    const application = addApplication(listing.id, currentUser.id, defaultMessage);
+    const application = await addApplication(listing.id, defaultMessage);
     
     if (application && conversation) {
       setApplicationStatus('pending');
-      addMessage(conversation.id, `📋 Zgłosiłem/am się przy tym ogłoszeniu. Oczekuję na decyzję właściciela.`);
+      await addMessage(conversation.id, `📋 Zgłosiłem/am się przy tym ogłoszeniu. Oczekuję na decyzję właściciela.`);
     }
     
     setIsApplying(false);
-  };
+  }, [listing, otherUser, isOwner, currentUser, conversation, addMessage]);
 
-  const handleAcceptApplication = async (applicationUserId: string) => {
+  const handleAcceptApplication = useCallback(async (applicationUserId: string) => {
     if (!listing) return;
     setProcessingApp(applicationUserId);
     
-    const updated = updateApplicationStatus(listing.id, applicationUserId, 'accepted');
+    await updateApplicationStatus(listing.id, applicationUserId, 'accepted');
     
-    if (updated && conversation) {
-      const applicant = getUserById(applicationUserId);
-      addMessage(conversation.id, `✅ Zaakceptowałem/am zgłoszenie od ${applicant?.name}. Zakończ ogłoszenie w panelu "Moje Ogłoszenia" aby przyznać punkty.`);
+    if (conversation) {
+      const applicant = await getUserById(applicationUserId);
+      await addMessage(conversation.id, `✅ Zaakceptowałem/am zgłoszenie od ${applicant?.name}. Zakończ ogłoszenie w panelu "Moje Ogłoszenia" aby przyznać punkty.`);
       
-      // Odśwież listę zgłoszeń
-      const refreshedApps = getApplicationsForListing(listing.id);
+      const refreshedApps = await getApplicationsForListing(listing.id);
       setApplications(refreshedApps);
-      
-      // Dodatkowo: odśwież dane ogłoszenia (może status się zmienił)
-      const refreshedListing = getListingById(listing.id);
-      if (refreshedListing) {
-        // Możesz zaktualizować local state listing jeśli go przechowujesz
-      }
     }
     
     setProcessingApp(null);
-  };
+  }, [listing, conversation, addMessage]);
 
-  const handleRejectApplication = async (applicationUserId: string) => {
+  const handleRejectApplication = useCallback(async (applicationUserId: string) => {
     if (!listing) return;
     setProcessingApp(applicationUserId);
     
-    const updated = updateApplicationStatus(listing.id, applicationUserId, 'rejected');
+    await updateApplicationStatus(listing.id, applicationUserId, 'rejected');
     
-    if (updated && conversation) {
-      const applicant = getUserById(applicationUserId);
-      addMessage(conversation.id, `❌ Odrzuciłem/am zgłoszenie od ${applicant?.name}.`);
-      setApplications(getApplicationsForListing(listing.id));
+    if (conversation) {
+      const applicant = await getUserById(applicationUserId);
+      await addMessage(conversation.id, `❌ Odrzuciłem/am zgłoszenie od ${applicant?.name}.`);
+      setApplications(await getApplicationsForListing(listing.id));
     }
     
     setProcessingApp(null);
-  };
+  }, [listing, conversation, addMessage]);
 
-  // Jeśli to rozmowa z samym sobą, pokaż komunikat
+  // Jeśli to rozmowa z samym sobą
   if (isSelfChat) {
     return (
       <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex items-center justify-center">
@@ -184,23 +249,18 @@ export default function SmartChat() {
   if (!otherUser || !listing) {
     return (
       <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex items-center justify-center">
-        <p>Nie znaleziono konwersacji</p>
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  const showApplyButton = !isOwner && 
-                          listing.status === 'active' && 
-                          applicationStatus === null;
-
+  const showApplyButton = !isOwner && listing.status === 'active' && applicationStatus === null;
   const showPendingStatus = applicationStatus === 'pending';
   const showAcceptedStatus = applicationStatus === 'accepted';
   const showRejectedStatus = applicationStatus === 'rejected';
-
   const pendingApplications = applications.filter(a => a.status === 'pending');
   const hasPendingApplications = pendingApplications.length > 0;
 
-  // Komponent zastępczy dla Clock
   const ClockIcon = () => (
     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="10" />
@@ -211,6 +271,7 @@ export default function SmartChat() {
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] flex flex-col">
       <div className="max-w-md mx-auto w-full flex flex-col min-h-screen">
+        {/* Header */}
         <header className="flex items-center gap-3 p-4 border-b border-[#7dd3c0]/15 backdrop-blur-md bg-gradient-to-r from-[rgba(60,65,75,0.6)] to-[rgba(50,55,65,0.4)]">
           <button
             onClick={() => navigate('/messages')}
@@ -227,7 +288,6 @@ export default function SmartChat() {
             <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center shadow-lg border-2 border-[#7dd3c0]/30`}>
               <span className="text-sm font-medium text-[#1e2026]">{otherUser.initials}</span>
             </div>
-            {/* Przycisk do panelu zgłoszeń (tylko dla właściciela) */}
             {isOwner && listing.status === 'active' && (
               <button
                 onClick={() => setShowApplicationsPanel(!showApplicationsPanel)}
@@ -248,7 +308,7 @@ export default function SmartChat() {
           </div>
         </header>
 
-        {/* Panel zgłoszeń (dla właściciela) */}
+        {/* Panel zgłoszeń */}
         {showApplicationsPanel && isOwner && listing.status === 'active' && (
           <div className="border-b border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(125,211,192,0.05)] p-4">
             <div className="flex items-center justify-between mb-3">
@@ -256,14 +316,11 @@ export default function SmartChat() {
                 <Users className="w-4 h-4 text-[#7dd3c0]" />
                 Zgłoszenia ({applications.length})
               </h3>
-              <button
-                onClick={() => setShowApplicationsPanel(false)}
-                className="text-xs text-[#b8b5ad] hover:text-[#7dd3c0]"
-              >
+              <button onClick={() => setShowApplicationsPanel(false)} className="text-xs text-[#b8b5ad] hover:text-[#7dd3c0]">
                 Zamknij
               </button>
             </div>
-            
+
             {applications.length === 0 ? (
               <p className="text-sm text-[#b8b5ad] text-center py-4">
                 Brak zgłoszeń. Poinformuj sąsiadów w czacie, żeby się zgłosili!
@@ -271,39 +328,25 @@ export default function SmartChat() {
             ) : (
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {applications.map((app) => {
-                  const applicant = getUserById(app.userId);
-                  if (!applicant) return null;
-                  
                   return (
-                    <div
-                      key={app.userId}
-                      className={`backdrop-blur-sm rounded-xl p-3 ${
-                        app.status === 'pending'
-                          ? 'bg-[rgba(125,211,192,0.1)] border border-[#7dd3c0]/30'
-                          : app.status === 'accepted'
-                          ? 'bg-[rgba(125,211,192,0.05)] border border-[#7dd3c0]/20 opacity-70'
-                          : 'bg-[rgba(232,141,141,0.05)] border border-[#e88d8d]/20 opacity-60'
-                      }`}
-                    >
+                    <div key={app.userId} className="backdrop-blur-sm rounded-xl p-3 bg-[rgba(125,211,192,0.1)] border border-[#7dd3c0]/30">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${applicant.avatarColor} flex items-center justify-center flex-shrink-0`}>
-                          <span className="text-sm font-medium text-[#1e2026]">{applicant.initials}</span>
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${app.userAvatarColor} flex items-center justify-center flex-shrink-0`}>
+                          <span className="text-sm font-medium text-[#1e2026]">{app.userInitials}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[#f5f3ed]">{applicant.name}</p>
+                          <p className="text-sm font-medium text-[#f5f3ed]">{app.userName}</p>
                           <p className="text-xs text-[#b8b5ad] truncate">{app.message}</p>
                           <p className="text-xs text-[#7dd3c0] mt-0.5">
-                            {new Date(app.appliedAt).toLocaleDateString('pl-PL')}
+                            {app.appliedAt?.toDate?.() ? new Date(app.appliedAt.toDate()).toLocaleDateString('pl-PL') : new Date().toLocaleDateString('pl-PL')}
                           </p>
                         </div>
-                        
                         {app.status === 'pending' && (
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleAcceptApplication(app.userId)}
                               disabled={processingApp === app.userId}
                               className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center hover:scale-110 transition-all duration-300 disabled:opacity-50"
-                              title="Zaakceptuj"
                             >
                               {processingApp === app.userId ? (
                                 <div className="w-4 h-4 border-2 border-[#1e2026] border-t-transparent rounded-full animate-spin" />
@@ -315,7 +358,6 @@ export default function SmartChat() {
                               onClick={() => handleRejectApplication(app.userId)}
                               disabled={processingApp === app.userId}
                               className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#e88d8d] to-[#c96b6b] flex items-center justify-center hover:scale-110 transition-all duration-300 disabled:opacity-50"
-                              title="Odrzuć"
                             >
                               {processingApp === app.userId ? (
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -325,14 +367,12 @@ export default function SmartChat() {
                             </button>
                           </div>
                         )}
-                        
                         {app.status === 'accepted' && (
                           <div className="flex items-center gap-1 text-xs text-[#7dd3c0]">
                             <CheckCircle className="w-4 h-4" />
                             <span>Zaakceptowano</span>
                           </div>
                         )}
-                        
                         {app.status === 'rejected' && (
                           <div className="flex items-center gap-1 text-xs text-[#e88d8d]">
                             <XCircle className="w-4 h-4" />
@@ -348,8 +388,8 @@ export default function SmartChat() {
           </div>
         )}
 
+        {/* Messages area */}
         <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-gradient-to-b from-[#2a2d35] via-[#2a2d35] to-[#25292f]">
-          {/* Status zgłoszenia (dla zgłaszającego) */}
           {!isOwner && showPendingStatus && (
             <div className="flex justify-center">
               <div className="backdrop-blur-md bg-[rgba(125,211,192,0.15)] border border-[#7dd3c0]/30 rounded-xl px-3 py-2 flex items-center gap-2">
@@ -391,7 +431,8 @@ export default function SmartChat() {
             </div>
           )}
           {messages.map((msg) => {
-            const isFromMe = msg.fromUserId === currentUser.id;
+            const isFromMe = msg.fromUserId === currentUser?.id;
+            const messageTime = msg.timestamp?.toDate?.() || new Date(msg.timestamp as any);
             return (
               <div key={msg.id} className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] rounded-[1.25rem] px-5 py-3 shadow-lg ${
@@ -401,7 +442,7 @@ export default function SmartChat() {
                 }`}>
                   <p className="text-sm leading-relaxed">{msg.text}</p>
                   <p className={`text-[10px] mt-1 ${isFromMe ? 'text-[#1e2026]/60' : 'text-[#2a2d35]/50'}`}>
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {messageTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
               </div>
@@ -410,8 +451,8 @@ export default function SmartChat() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Input area */}
         <div className="p-4 border-t border-[#7dd3c0]/15 backdrop-blur-md bg-gradient-to-r from-[rgba(60,65,75,0.6)] to-[rgba(50,55,65,0.4)]">
-          {/* Przycisk "Zgłoś się!" (tylko dla osób NIE będących właścicielami) */}
           {!isOwner && showApplyButton && (
             <div className="mb-4">
               <button
@@ -437,7 +478,6 @@ export default function SmartChat() {
             </div>
           )}
 
-          {/* Informacja dla właściciela o panelu zgłoszeń */}
           {isOwner && listing.status === 'active' && hasPendingApplications && !showApplicationsPanel && (
             <div className="mb-4">
               <button

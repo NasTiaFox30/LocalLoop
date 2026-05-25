@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
-import { ArrowLeft, Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus, ArrowUpDown, Clock, X } from 'lucide-react';
-import { favorCategories, getOffers, getUserById, timeAgo } from '../../data/appData';
+import { useState, useMemo, useEffect } from 'react';
+import { ArrowLeft, Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus, ArrowUpDown, X } from 'lucide-react';
+import { favorCategories, getOffers, getUserById, timeAgo, type Listing, type User } from '../../data/firebaseData';
 import type { LucideIcon } from 'lucide-react';
 
 const iconMap: Record<string, LucideIcon> = {
@@ -16,9 +16,35 @@ export default function RequestFavor() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [showAllOffers, setShowAllOffers] = useState(false);
-  
-  const allOffers = getOffers();
+  const [allOffers, setAllOffers] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [ownersCache, setOwnersCache] = useState<Map<string, User>>(new Map());
+
   const INITIAL_DISPLAY_COUNT = 5;
+
+  useEffect(() => {
+    const loadOffers = async () => {
+      setLoading(true);
+      try {
+        const offers = await getOffers();
+        setAllOffers(offers);
+        
+        // Preload owner data
+        const ownerIds = [...new Set(offers.map(o => o.ownerId))];
+        const owners = await Promise.all(ownerIds.map(id => getUserById(id)));
+        const cache = new Map<string, User>();
+        owners.forEach(owner => {
+          if (owner) cache.set(owner.id, owner);
+        });
+        setOwnersCache(cache);
+      } catch (error) {
+        console.error('Failed to load offers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadOffers();
+  }, []);
 
   const filteredAndSortedOffers = useMemo(() => {
     let filtered = [...allOffers];
@@ -37,8 +63,8 @@ export default function RequestFavor() {
     }
     
     filtered.sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
+      const dateA = a.createdAt?.toDate?.()?.getTime() || new Date(a.createdAt as any).getTime();
+      const dateB = b.createdAt?.toDate?.()?.getTime() || new Date(b.createdAt as any).getTime();
       return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
     });
     
@@ -56,14 +82,30 @@ export default function RequestFavor() {
     return counts;
   }, [allOffers]);
 
-  const sortLabel = sortBy === 'newest' ? 'Najnowsze' : 'Najstarsze';
-
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCategory(null);
   };
 
   const hasActiveFilters = searchQuery.trim() !== '' || selectedCategory !== null;
+
+  const getOwner = (ownerId: string): User | null => {
+    return ownersCache.get(ownerId) || null;
+  };
+
+  // Konwersja Timestamp na string dla timeAgo
+  const getFormattedTime = (timestamp: any): string => {
+    const date = timestamp?.toDate?.() || new Date(timestamp);
+    return timeAgo(date);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#2a2d35] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
@@ -156,8 +198,9 @@ export default function RequestFavor() {
             </div>
           ) : (
             displayedOffers.map((item) => {
-              const owner = getUserById(item.ownerId);
+              const owner = getOwner(item.ownerId);
               if (!owner) return null;
+              const createdAt = item.createdAt?.toDate?.() || new Date(item.createdAt as any);
               return (
                 <button
                   key={item.id}
@@ -170,7 +213,7 @@ export default function RequestFavor() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[#f5f3ed] mb-1">{item.title}</p>
-                      <p className="text-xs text-[#b8b5ad]">{owner.name} • {timeAgo(item.createdAt)}</p>
+                      <p className="text-xs text-[#b8b5ad]">{owner.name} • {timeAgo(createdAt)}</p>
                       <div className="mt-1">
                         <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#7dd3c0]/20 to-[#a8d5ba]/10 border border-[#7dd3c0]/30 text-xs text-[#7dd3c0]">
                           {item.category}

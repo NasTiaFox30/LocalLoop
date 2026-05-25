@@ -1,22 +1,39 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, Bell, Package, Moon, Sun, HelpCircle, LogOut, ChevronRight } from "lucide-react";
-import { logout } from '../../data/appData';
-import { currentUser } from '../../data/appData';
+import { signOutUser, getCurrentUser, type User } from '../../data/firebaseData';
 
-interface DesktopUserProfileProps {
-}
-
-export default function DesktopUserProfile({}: DesktopUserProfileProps) {
+export default function DesktopUserProfile() {
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<User | null>(getCurrentUser());
   const [darkMode, setDarkMode] = useState(true);
   const [notificationMode, setNotificationMode] = useState<'all' | 'important' | 'disabled'>('all');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentUser(getCurrentUser());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const settingsItems = [
     { icon: Edit, label: "Edytuj profil", onClick: () => navigate('/edit-profile') },
     { icon: Package, label: "Moje ogłoszenia", onClick: () => navigate('/my-listings') },
     { icon: HelpCircle, label: "Pomoc i wsparcie", onClick: () => {} },
   ];
+
+  const handleLogout = async () => {
+    await signOutUser();
+    navigate('/onboarding');
+  };
+
+  if (!currentUser) {
+    return (
+      <div className="hidden lg:block min-h-screen bg-[#2a2d35] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
@@ -38,7 +55,6 @@ export default function DesktopUserProfile({}: DesktopUserProfileProps) {
                     <Edit className="w-4 h-4 text-[#1e2026]" />
                   </button>
                 </div>
-
                 <div className="flex-1">
                   <h2 className="text-xl font-medium text-[#f5f3ed] mb-1">{currentUser.name}</h2>
                   <p className="text-sm text-[#b8b5ad] mb-4">{currentUser.email}</p>
@@ -107,10 +123,7 @@ export default function DesktopUserProfile({}: DesktopUserProfileProps) {
 
           <div className="col-span-1">
             <button
-              onClick={() => {
-                logout();
-                navigate('/onboarding');
-              }}
+              onClick={handleLogout}
               className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-[rgba(232,141,141,0.1)] border border-transparent hover:border-[#e88d8d]/30 transition-all duration-300 group"
             >
               <LogOut className="w-5 h-5 text-[#e88d8d]" />

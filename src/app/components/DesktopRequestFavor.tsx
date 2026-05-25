@@ -1,9 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
-import { favorCategories, getOffers, getUserById, timeAgo } from '../../data/appData';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus, ArrowUpDown, X } from 'lucide-react';
+import { favorCategories, getOffers, getUserById, timeAgo, type Listing, type User } from '../../data/firebaseData';
 
-// Mapa nazw ikon do komponentów
 const iconMap: Record<string, React.ElementType> = {
   Wrench, Car, BookOpen, Home, Heart, Utensils,
 };
@@ -17,17 +16,40 @@ type SortOption = 'newest' | 'oldest';
 export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavorProps) {
   const navigate = useNavigate();
   const categories = favorCategories;
-  const allOffers = getOffers();
+  const [allOffers, setAllOffers] = useState<Listing[]>([]);
+  const [ownersCache, setOwnersCache] = useState<Map<string, User>>(new Map());
+  const [loading, setLoading] = useState(true);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
 
-  // Filtrowanie i sortowanie ofert
+  useEffect(() => {
+    const loadOffers = async () => {
+      setLoading(true);
+      try {
+        const offers = await getOffers();
+        setAllOffers(offers);
+        
+        const ownerIds = [...new Set(offers.map(o => o.ownerId))];
+        const owners = await Promise.all(ownerIds.map(id => getUserById(id)));
+        const cache = new Map<string, User>();
+        owners.forEach(owner => {
+          if (owner) cache.set(owner.id, owner);
+        });
+        setOwnersCache(cache);
+      } catch (error) {
+        console.error('Failed to load offers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadOffers();
+  }, []);
+
   const filteredAndSortedOffers = useMemo(() => {
     let filtered = [...allOffers];
 
-    // Filtrowanie po wyszukiwaniu
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -37,22 +59,19 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
       );
     }
 
-    // Filtrowanie po kategorii
     if (selectedCategory) {
       filtered = filtered.filter(offer => offer.category === selectedCategory);
     }
 
-    // Sortowanie
     filtered.sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
+      const dateA = a.createdAt?.toDate?.()?.getTime() || new Date(a.createdAt as any).getTime();
+      const dateB = b.createdAt?.toDate?.()?.getTime() || new Date(b.createdAt as any).getTime();
       return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
     return filtered;
   }, [allOffers, searchQuery, selectedCategory, sortBy]);
 
-  // Statystyki kategorii
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     allOffers.forEach(offer => {
@@ -72,6 +91,18 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
   };
 
   const hasActiveFilters = searchQuery.trim() !== '' || selectedCategory !== null;
+
+  const getOwner = (ownerId: string): User | null => {
+    return ownersCache.get(ownerId) || null;
+  };
+
+  if (loading) {
+    return (
+      <div className="hidden lg:block min-h-screen bg-[#2a2d35] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
@@ -128,14 +159,6 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
         {/* Active filters display */}
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {selectedCategory && (
-              <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-[#7dd3c0]/20 to-[#a8d5ba]/10 border border-[#7dd3c0]/30 text-sm text-[#7dd3c0] flex items-center gap-2">
-                Kategoria: {selectedCategory}
-                <button onClick={() => setSelectedCategory(null)} className="hover:text-[#a8d5ba]">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
             {searchQuery && (
               <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-[#89cff0]/20 to-[#7dd3c0]/10 border border-[#89cff0]/30 text-sm text-[#89cff0] flex items-center gap-2">
                 Szukaj: "{searchQuery}"
@@ -213,8 +236,9 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
               ) : (
                 <div className="grid grid-cols-2 gap-3 max-h-[600px] overflow-y-auto pr-2">
                   {filteredAndSortedOffers.map((item) => {
-                    const owner = getUserById(item.ownerId);
+                    const owner = getOwner(item.ownerId);
                     if (!owner) return null;
+                    const createdAt = item.createdAt?.toDate?.() || new Date(item.createdAt as any);
                     return (
                       <button
                         key={item.id}
@@ -227,7 +251,7 @@ export default function DesktopRequestFavor({ onOpenDetail }: DesktopRequestFavo
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-[#f5f3ed] mb-1 truncate">{item.title}</p>
-                            <p className="text-xs text-[#b8b5ad]">{owner.name} • {timeAgo(item.createdAt)}</p>
+                            <p className="text-xs text-[#b8b5ad]">{owner.name} • {timeAgo(createdAt)}</p>
                             <div className="mt-2">
                               <span className="px-2 py-1 rounded-full bg-gradient-to-r from-[#7dd3c0]/20 to-[#a8d5ba]/10 border border-[#7dd3c0]/30 text-xs text-[#7dd3c0]">
                                 {item.category}
