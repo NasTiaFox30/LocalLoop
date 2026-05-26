@@ -1,8 +1,9 @@
 import { X, Repeat, Star, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { getListingById, getUserById, currentUser } from '../../data/appData';
+import { getListingById, getUserById, getCurrentUser, timeAgo, type Listing, type User } from '../../data/firebaseData';
 
 interface DesktopDetailDrawerProps {
   isOpen: boolean;
@@ -13,13 +14,38 @@ interface DesktopDetailDrawerProps {
 
 export default function DesktopDetailDrawer({ isOpen, onClose, onChat, item }: DesktopDetailDrawerProps) {
   const navigate = useNavigate();
-  const listing = item?.listingId ? getListingById(item.listingId) : null;
-  const owner = listing ? getUserById(listing.ownerId) : null;
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [owner, setOwner] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const currentUser = getCurrentUser();
 
-  if (!listing || !owner) return null;
+  useEffect(() => {
+    const loadData = async () => {
+      if (!item?.listingId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const listingData = await getListingById(item.listingId);
+        setListing(listingData);
+        if (listingData) {
+          const ownerData = await getUserById(listingData.ownerId);
+          setOwner(ownerData);
+        }
+      } catch (error) {
+        console.error('Failed to load listing:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [item?.listingId]);
+
+  if (loading || !listing || !owner) return null;
 
   const isOffer = listing.listingType === 'offer';
-  const isOwnListing = owner.id === currentUser.id;
+  const isOwnListing = owner.id === currentUser?.id;
+  const createdAt = listing.createdAt?.toDate?.() || new Date(listing.createdAt as any);
 
   return (
     <AnimatePresence>
@@ -56,15 +82,29 @@ export default function DesktopDetailDrawer({ isOpen, onClose, onChat, item }: D
             <div className="p-6">
               <div className="relative rounded-3xl overflow-hidden mb-6 shadow-2xl">
                 <ImageWithFallback
-                  src={listing.image}
+                  src={listing.imageUrl}
                   alt={listing.title}
                   className="w-full aspect-[16/9] object-cover"
                 />
               </div>
 
               <div className="flex items-center gap-4 mb-6">
-                <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center shadow-lg`}>
-                  <span className="text-xl font-medium text-[#1e2026]">{owner.initials}</span>
+                <div className="w-16 h-16 rounded-full overflow-hidden shadow-lg">
+                  {owner.avatarUrl ? (
+                    <img 
+                      src={owner.avatarUrl} 
+                      alt={owner.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentElement!.innerHTML = `<div class="w-full h-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center"><span class="text-xl font-medium text-[#1e2026]">${owner.initials}</span></div>`;
+                      }}
+                    />
+                  ) : (
+                    <div className={`w-full h-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center`}>
+                      <span className="text-xl font-medium text-[#1e2026]">{owner.initials}</span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-[#f5f3ed]">{owner.name}</h3>
@@ -115,14 +155,14 @@ export default function DesktopDetailDrawer({ isOpen, onClose, onChat, item }: D
                 <button
                   onClick={() => {
                     onChat();
-                    navigate('/messages', { state: { listingId: listing.id, ownerId: owner.id } });
+                    navigate('/messages', { state: { listingId: listing.id, ownerId: owner.id, listingTitle: listing.title } });
                   }}
-                  className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/40 hover:scale-[1.02] transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center justify-center gap-2"
-                >
-                  <MessageSquare className="w-5 h-5" />
-                  Chatuj z {owner.name.split(' ')[0]}
-                </button>
-              )}
+                className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/40 hover:scale-[1.02] transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center justify-center gap-2"
+              >
+                <MessageSquare className="w-5 h-5" />
+                Chatuj z {owner.name.split(' ')[0]}
+              </button>
+            )}
 
               {/* Komunikat dla własnego ogłoszenia */}
               {isOwnListing && listing.status === 'active' && (

@@ -1,14 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from "react";
-import {
-  Camera,
-  ArrowLeft,
-  Check,
-  Loader2,
-  Wand2,
-} from "lucide-react";
-import { ImageWithFallback } from "./ImageWithFallback";
-import { currentUser, addListing, favorCategories } from '../../data/appData';
+import { useState } from 'react';
+import { Camera, ArrowLeft, Check, Loader2, Wand2 } from 'lucide-react';
+import { ImageWithFallback } from './ImageWithFallback';
+import { getCurrentUser, addListing, favorCategories } from '../../data/firebaseData'; // Zmiana importu
 import { generateRandomOfferContent } from '../../data/textsAI_templates';
 
 export default function CreateFavorRequest() {
@@ -58,23 +52,33 @@ export default function CreateFavorRequest() {
       return;
     }
 
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      alert('Musisz być zalogowany');
+      navigate('/auth');
+      return;
+    }
+
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    addListing({
-      ownerId: currentUser.id,
-      title: title.trim(),
-      description: description.trim(),
-      image: imageUrl,
-      status: 'active',
-      category: category,
-      listingType: 'offer',
-      suggestedBarter: suggestedBarter || undefined,
-      suggestedPoints: suggestedPoints || undefined,
-    });
-
-    setIsLoading(false);
-    navigate('/my-listings');
+    try {
+      await addListing({
+        ownerId: currentUser.id,
+        title: title.trim(),
+        description: description.trim(),
+        imageUrl: imageUrl, // UWAGA: w firebaseData jest imageUrl, nie image
+        status: 'active',
+        category: category,
+        listingType: 'offer',
+        suggestedBarter: suggestedBarter || undefined,
+        suggestedPoints: suggestedPoints || undefined,
+      });
+      navigate('/my-listings');
+    } catch (error) {
+      console.error('Failed to add listing:', error);
+      alert('Wystąpił błąd podczas publikowania ogłoszenia');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -1,5 +1,51 @@
 @custom-variant dark (&:is(.dark *));
 
+/* ── Light mode ─────────────────────────────────────────── */
+html.light {
+  --background: #f0ede6;
+  --foreground: #1e2026;
+  --card: rgba(255, 252, 247, 0.85);
+  --card-foreground: #1e2026;
+  --popover: rgba(255, 252, 247, 0.97);
+  --popover-foreground: #1e2026;
+  --primary: #4ab8a4;
+  --primary-foreground: #ffffff;
+  --secondary: #6dba8a;
+  --secondary-foreground: #ffffff;
+  --muted: rgba(200, 198, 192, 0.5);
+  --muted-foreground: #6b6860;
+  --accent: #5aabcf;
+  --accent-foreground: #ffffff;
+  --destructive: #c0504a;
+  --destructive-foreground: #ffffff;
+  --border: rgba(74, 184, 164, 0.2);
+  --input: transparent;
+  --input-background: rgba(230, 228, 222, 0.7);
+  --switch-background: rgba(180, 178, 172, 0.5);
+  --ring: #4ab8a4;
+  --chart-1: #4ab8a4;
+  --chart-2: #6dba8a;
+  --chart-3: #5aabcf;
+  --chart-4: #9dd5c4;
+  --chart-5: #a0c8de;
+
+  /* sidebar */
+  --sidebar: #e8e5de;
+  --sidebar-foreground: #1e2026;
+  --sidebar-primary: #4ab8a4;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #dedad2;
+  --sidebar-accent-foreground: #1e2026;
+  --sidebar-border: rgba(74, 184, 164, 0.2);
+  --sidebar-ring: #4ab8a4;
+}
+
+/* Apply CSS vars to the @theme layer for light mode too */
+html.light body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
 :root {
   --font-size: 16px;
   --background: #2a2d35;
@@ -188,3 +234,101 @@
     line-height: 1.5;
   }
 }
+
+/* ── Light mode overrides for hardcoded bg/text classes ─── */
+html.light .bg-\[\#2a2d35\] { background-color: var(--background) !important; }
+html.light .bg-\[\#1e2026\] { background-color: #dedad2 !important; }
+html.light .text-\[\#f5f3ed\] { color: var(--foreground) !important; }
+html.light .text-\[\#b8b5ad\] { color: #7a7872 !important; }
+html.light .text-\[\#1e2026\] { color: #ffffff !important; }
+html.light .border-\[\#7dd3c0\]\/15 { border-color: rgba(74,184,164,0.25) !important; }
+html.light .border-\[\#7dd3c0\]\/10 { border-color: rgba(74,184,164,0.2) !important; }
+html.light .border-\[\#7dd3c0\]\/20 { border-color: rgba(74,184,164,0.3) !important; }
+html.light .border-\[\#7dd3c0\]\/40 { border-color: rgba(74,184,164,0.5) !important; }
+
+/* Cards / backdrop panels */
+html.light .bg-gradient-to-br.from-\[rgba\(60\,65\,75\,0\.5\)\],
+html.light [class*="from-[rgba(60,65,75"] {
+  background: rgba(255, 252, 247, 0.85) !important;
+}
+html.light .backdrop-blur-md {
+  backdrop-filter: blur(12px);
+}
+
+/* Input backgrounds */
+html.light .bg-\[rgba\(40\,43\,50\,0\.4\)\] { background-color: rgba(255, 255, 255, 0.4) !important; }
+html.light .bg-\[rgba\(42\,45\,53\,0\.9\)\] { background-color: rgba(255,252,247,0.7);}
+html.light .bg-\[rgba\(42\,45\,53\,0\.8\)\] { background-color: rgba(255,252,247,0.7);}
+html.light .bg-\[rgba\(80\,85\,95\,0\.5\)\] { background-color: rgba(180,178,172,0.5) !important; }
+html.light .bg-\[rgba\(60\,65\,75\,0\.4\)\] { background-color: rgba(255,252,247,0.7) !important; }
+html.light .bg-\[rgba\(60\,65\,75\,0\.5\)\] { background-color: rgba(255,252,247,0.7) !important; }
+
+
+/* Gradient text / icon colors on cards */
+html.light .from-\[\#7dd3c0\]\/20 { --tw-gradient-from: rgba(74,184,164,0.15) !important; }
+html.light .text-\[\#7dd3c0\] { color: var(--primary) !important; }
+html.light .shadow-\[\#7dd3c0\]\/30 { --tw-shadow-color: rgba(74,184,164,0.25) !important; }
+
+/* Bottom nav / sidebar */
+html.light .bg-\[rgba\(42\,45\,53\,0\.95\)\] { background-color: rgba(232,229,222,0.97) !important; }
+html.light .border-\[\#7dd3c0\]\/25 { border-color: rgba(74,184,164,0.35) !important; }
+html.light .border-\[rgba\(125\,211\,192\,0\.15\)\] { border-color: rgba(74,184,164,0.2) !important; }
+
+/* Sidebar specific */
+html.light [class*="bg-[#2a2d35]"] { background-color: var(--background) !important; }
+html.light [class*="border-[#7dd3c0]"] { border-color: rgba(74,184,164,0.25) !important; }
+
+/* ── SmartChat & DesktopSmartChat light mode overrides ──── */
+
+/* Chat area gradient background */
+html.light .from-\[\#2a2d35\].via-\[\#2a2d35\].to-\[\#25292f\],
+html.light [class*="from-[#2a2d35]"][class*="via-[#2a2d35]"] {
+  background: linear-gradient(to bottom, #ede9e0, #e8e4db, #e2ddd4) !important;
+}
+/* Incoming message bubbles: bg-[rgba(245,243,237,0.95)] text-[#2a2d35] */
+html.light .bg-\[rgba\(245\,243\,237\,0\.95\)\] {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(74, 184, 164, 0.15) !important;
+}
+
+html.light .text-\[\#2a2d35\] { color: #1e2026 !important; }
+html.light .text-\[\#2a2d35\]\/50 { color: rgba(30, 32, 38, 0.45) !important; }
+html.light .text-\[\#1e2026\]\/60 { color: rgba(30, 32, 38, 0.55) !important; }
+
+/* Typing input field */
+html.light .bg-\[rgba\(40\,43\,50\,0\.5\)\] {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(74, 184, 164, 0.25) !important;
+}
+
+/* Application cards bg-[rgba(125,211,192,0.1)] */
+html.light .bg-\[rgba\(125\,211\,192\,0\.1\)\] {
+  background-color: rgba(74, 184, 164, 0.1) !important;
+}
+html.light .hover\:bg-\[rgba\(125\,211\,192\,0\.2\)\]:hover {
+  background-color: rgba(74, 184, 164, 0.2) !important;
+}
+
+/* AI suggestions pills */
+html.light .from-\[\#7dd3c0\]\/15 {
+  --tw-gradient-from: rgba(74, 184, 164, 0.15) !important;
+}
+html.light .to-\[\#89cff0\]\/10 {
+  --tw-gradient-to: rgba(90, 171, 207, 0.1) !important;
+}
+
+
+/* Notification badge border */
+html.light .border-\[\#2a2d35\] { border-color: #f0ede6 !important; }
+
+/* Desktop chat: bg-[rgba(40,43,50,0.3)] */
+html.light .bg-\[rgba\(40\,43\,50\,0\.3\)\] {
+  background-color: rgba(230, 227, 219, 0.6) !important;
+}
+
+/* Placeholder text color */
+html.light .placeholder-\[\#b8b5ad\]::placeholder { color: #9a9790 !important; }
+
+
+/* Buttons */
+html.light .bg-\[rgba\(42\,45\,53\,0\.95\)\] { background-color: rgba(232,229,222,0.97) !important; }

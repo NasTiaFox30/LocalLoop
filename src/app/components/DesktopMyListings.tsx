@@ -1,36 +1,181 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { Clock, Eye, Users, Plus, Trash2, CheckCircle, X, ListTodo, HandHelping } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Clock, Eye, Users, Plus, Trash2, CheckCircle, X, ListTodo, HandHelping, UserCheck } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { currentUser, getActiveListingsByUser, getCompletedListingsByUser, getUserById, deleteListing, completeListing } from '../../data/appData';
-import type { Listing } from '../../data/appData';
+import { 
+  getCurrentUser, 
+  getActiveListingsByUser, 
+  getCompletedListingsByUser, 
+  getUserById, 
+  deleteListing, 
+  completeListing,
+  getApplicationsForListing,
+  type Listing,
+  type Application,
+  type User
+} from '../../data/firebaseData';
+
+// Komponent dla pojedynczego zakończonego ogłoszenia (Desktop)
+function DesktopCompletedListingItem({ listing }: { listing: Listing }) {
+  const [completedWithUser, setCompletedWithUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      if (listing.completedWithUserId) {
+        const user = await getUserById(listing.completedWithUserId);
+        setCompletedWithUser(user);
+      }
+    };
+    loadUser();
+  }, [listing.completedWithUserId]);
+
+  return (
+    <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/10 rounded-2xl overflow-hidden shadow-xl opacity-75">
+      <div className="relative h-48 overflow-hidden">
+        <ImageWithFallback
+          src={listing.imageUrl}
+          alt={listing.title}
+          className="w-full h-full object-cover opacity-60"
+        />
+        <div className="absolute top-3 right-3">
+          <span className="px-3 py-1 rounded-full bg-[rgba(60,65,75,0.8)] border border-[#b8b5ad]/20 text-xs font-medium text-[#b8b5ad]">
+            Ukończone
+          </span>
+        </div>
+      </div>
+      <div className="p-4">
+        <h4 className="font-medium text-base text-[#f5f3ed] mb-2">{listing.title}</h4>
+        {completedWithUser && (
+          <div className="flex items-center gap-2 text-xs text-[#b8b5ad]">
+            <Clock className="w-4 h-4" />
+            <span>Wymieniono z: <span className="text-[#7dd3c0]">{completedWithUser.name}</span></span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Komponent dla zgłoszenia w modalu
+function ApplicationItem({ 
+  application, 
+  onComplete 
+}: { 
+  application: Application; 
+  onComplete: (userId: string) => void;
+}) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const u = await getUserById(application.userId);
+      setUser(u);
+      setLoading(false);
+    };
+    loadUser();
+  }, [application.userId]);
+
+  if (loading) {
+    return (
+      <div className="w-full backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-xl p-3">
+        <div className="w-10 h-10 rounded-full bg-gray-600 animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  return (
+    <button
+      onClick={() => onComplete(application.userId)}
+      className="w-full backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-xl p-3 hover:border-[#7dd3c0]/30 hover:bg-[rgba(125,211,192,0.1)] transition-all duration-300 text-left flex items-center gap-3"
+    >
+      <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${user.avatarColor} flex items-center justify-center flex-shrink-0`}>
+        <span className="text-sm font-medium text-[#1e2026]">{user.initials}</span>
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-medium text-[#f5f3ed]">{user.name}</p>
+        <p className="text-xs text-[#b8b5ad] truncate">{application.message}</p>
+      </div>
+      <div className="text-xs text-[#7dd3c0]">
+        {application.appliedAt?.toDate?.() ? new Date(application.appliedAt.toDate()).toLocaleDateString('pl-PL') : new Date().toLocaleDateString('pl-PL')}
+      </div>
+    </button>
+  );
+}
 
 export default function DesktopMyListings() {
   const navigate = useNavigate();
-  const [activeListings, setActiveListings] = useState<Listing[]>(() => getActiveListingsByUser(currentUser.id));
-  const [completedListings, setCompletedListings] = useState<Listing[]>(() => getCompletedListingsByUser(currentUser.id));
+  const [activeListings, setActiveListings] = useState<Listing[]>([]);
+  const [completedListings, setCompletedListings] = useState<Listing[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [showCompleteConfirm, setShowCompleteConfirm] = useState<string | null>(null);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
   const [showTypeModal, setShowTypeModal] = useState(false);
+  const [selectedListingForComplete, setSelectedListingForComplete] = useState<Listing | null>(null);
+  const [applicationsForListing, setApplicationsForListing] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
 
-  const refreshListings = () => {
-    setActiveListings(getActiveListingsByUser(currentUser.id));
-    setCompletedListings(getCompletedListingsByUser(currentUser.id));
+  const refreshListings = async () => {
+    if (!currentUser) return;
+    setLoading(true);
+    try {
+      const active = await getActiveListingsByUser(currentUser.id);
+      const completed = await getCompletedListingsByUser(currentUser.id);
+      setActiveListings(active);
+      setCompletedListings(completed);
+    } catch (error) {
+      console.error('Failed to refresh listings:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = (listingId: string) => {
-    deleteListing(listingId);
+  useEffect(() => {
     refreshListings();
-    setShowDeleteConfirm(null);
+  }, [currentUser]);
+
+  const handleDelete = async (listingId: string) => {
+    try {
+      await deleteListing(listingId);
+      await refreshListings();
+      setShowDeleteConfirm(null);
+    } catch (error) {
+      console.error('Failed to delete listing:', error);
+      alert('Nie udało się usunąć ogłoszenia');
+    }
   };
 
-  const handleComplete = (listingId: string) => {
-    // W przyszłości: wybór użytkownika, z którym dokonano wymiany
-    // Na razie symulujemy wybór pierwszego innego użytkownika
-    const otherUserId = 'user-2';
-    completeListing(listingId, otherUserId);
-    refreshListings();
-    setShowCompleteConfirm(null);
+  const handleOpenCompleteModal = async (listing: Listing) => {
+    try {
+      const apps = await getApplicationsForListing(listing.id);
+      setApplicationsForListing(apps);
+      setSelectedListingForComplete(listing);
+      setShowCompleteConfirm(true);
+    } catch (error) {
+      console.error('Failed to load applications:', error);
+    }
+  };
+
+  const handleCompleteWithUser = async (completedWithUserId: string) => {
+    if (!selectedListingForComplete) return;
+    
+    try {
+      const completed = await completeListing(selectedListingForComplete.id, completedWithUserId);
+      if (completed) {
+        await refreshListings();
+        setShowCompleteConfirm(false);
+        setSelectedListingForComplete(null);
+        setApplicationsForListing([]);
+        alert('✅ Ogłoszenie zostało zakończone! Punkty zostały przyznane.');
+      } else {
+        alert('❌ Nie można zakończyć tego ogłoszenia. Upewnij się, że wybrany użytkownik ma zaakceptowane zgłoszenie.');
+      }
+    } catch (error) {
+      console.error('Failed to complete listing:', error);
+      alert('Wystąpił błąd podczas kończenia ogłoszenia');
+    }
   };
 
   const handleCreateNew = () => {
@@ -45,6 +190,14 @@ export default function DesktopMyListings() {
       navigate('/create-help-request');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="hidden lg:block min-h-screen bg-[#2a2d35] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
@@ -108,59 +261,73 @@ export default function DesktopMyListings() {
             <div>
               <h3 className="text-base font-medium text-[#f5f3ed] mb-4">Aktywne</h3>
               <div className="grid grid-cols-3 gap-4">
-                {activeListings.map((item) => (
-                  <div
-                    key={item.id}
-                    className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl overflow-hidden shadow-xl hover:border-[#7dd3c0]/30 hover:scale-[1.02] transition-all duration-300 group cursor-pointer"
-                  >
-                    <div className="relative h-48 overflow-hidden">
-                      <ImageWithFallback
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute top-3 right-3 flex gap-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium shadow-lg ${
-                          item.listingType === 'offer' 
-                            ? 'bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026]'
-                            : 'bg-gradient-to-r from-[#89cff0] to-[#7dd3c0] text-[#1e2026]'
-                        }`}>
-                          {item.listingType === 'offer' ? 'Oferta' : 'Prośba'}
-                        </span>
-                      </div>
-                      {/* Action buttons overlay */}
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
-                        <button
-                          onClick={() => setShowCompleteConfirm(item.id)}
-                          className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg"
-                          title="Oznacz jako zakończone"
-                        >
-                          <CheckCircle className="w-6 h-6 text-[#1e2026]" />
-                        </button>
-                        <button
-                          onClick={() => setShowDeleteConfirm(item.id)}
-                          className="w-12 h-12 rounded-full bg-gradient-to-br from-[#e88d8d] to-[#c96b6b] flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg"
-                          title="Usuń ogłoszenie"
-                        >
-                          <Trash2 className="w-6 h-6 text-white" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h4 className="font-medium text-base text-[#f5f3ed] mb-3">{item.title}</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="flex items-center gap-2 text-xs text-[#b8b5ad]">
-                          <Eye className="w-4 h-4" />
-                          <span>{item.views} wyświetleń</span>
+                {activeListings.map((item) => {
+                  const hasApps = applicationsForListing.length > 0 && selectedListingForComplete?.id === item.id;
+                  return (
+                    <div
+                      key={item.id}
+                      className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-2xl overflow-hidden shadow-xl hover:border-[#7dd3c0]/30 hover:scale-[1.02] transition-all duration-300 group cursor-pointer"
+                    >
+                      <div className="relative h-48 overflow-hidden">
+                        <ImageWithFallback
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute top-3 right-3 flex gap-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium shadow-lg ${
+                            item.listingType === 'offer' 
+                              ? 'bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026]'
+                              : 'bg-gradient-to-r from-[#89cff0] to-[#7dd3c0] text-[#1e2026]'
+                          }`}>
+                            {item.listingType === 'offer' ? 'Oferta' : 'Prośba'}
+                          </span>
+                          {hasApps && (
+                            <span className="px-3 py-1 rounded-full text-xs font-medium shadow-lg bg-gradient-to-r from-[#89cff0] to-[#7dd3c0] text-[#1e2026] flex items-center gap-1">
+                              <UserCheck className="w-3 h-3" />
+                              Zgłoszenia
+                            </span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-[#7dd3c0]">
-                          <Users className="w-4 h-4" />
-                          <span>{item.interestedCount} zainteresowanych</span>
+                        {/* Action buttons overlay */}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+                          <button
+                            onClick={() => handleOpenCompleteModal(item)}
+                            className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg"
+                            title="Oznacz jako zakończone"
+                          >
+                            <CheckCircle className="w-6 h-6 text-[#1e2026]" />
+                          </button>
+                          <button
+                            onClick={() => setShowDeleteConfirm(item.id)}
+                            className="w-12 h-12 rounded-full bg-gradient-to-br from-[#e88d8d] to-[#c96b6b] flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg"
+                            title="Usuń ogłoszenie"
+                          >
+                            <Trash2 className="w-6 h-6 text-white" />
+                          </button>
                         </div>
                       </div>
+                      <div className="p-4">
+                        <h4 className="font-medium text-base text-[#f5f3ed] mb-3">{item.title}</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center gap-2 text-xs text-[#b8b5ad]">
+                            <Eye className="w-4 h-4" />
+                            <span>{item.views} wyświetleń</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-[#7dd3c0]">
+                            <Users className="w-4 h-4" />
+                            <span>{item.interestedCount} zainteresowanych</span>
+                          </div>
+                        </div>
+                        {item.suggestedPoints && (
+                          <div className="mt-2 text-xs text-[#89cff0]">
+                            🎯 {item.suggestedPoints} pkt.
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -169,37 +336,9 @@ export default function DesktopMyListings() {
             <div>
               <h3 className="text-base font-medium text-[#f5f3ed] mb-4">Zakończone</h3>
               <div className="grid grid-cols-3 gap-4">
-                {completedListings.map((item) => {
-                  const completedWithUser = item.completedWithUserId ? getUserById(item.completedWithUserId) : null;
-                  return (
-                    <div
-                      key={item.id}
-                      className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/10 rounded-2xl overflow-hidden shadow-xl opacity-75"
-                    >
-                      <div className="relative h-48 overflow-hidden">
-                        <ImageWithFallback
-                          src={item.image}
-                          alt={item.title}
-                          className="w-full h-full object-cover opacity-60"
-                        />
-                        <div className="absolute top-3 right-3">
-                          <span className="px-3 py-1 rounded-full bg-[rgba(60,65,75,0.8)] border border-[#b8b5ad]/20 text-xs font-medium text-[#b8b5ad]">
-                            Ukończone
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-4">
-                        <h4 className="font-medium text-base text-[#f5f3ed] mb-2">{item.title}</h4>
-                        {completedWithUser && (
-                          <div className="flex items-center gap-2 text-xs text-[#b8b5ad]">
-                            <Clock className="w-4 h-4" />
-                            <span>Wymieniono z: <span className="text-[#7dd3c0]">{completedWithUser.name}</span></span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                {completedListings.map((item) => (
+                  <DesktopCompletedListingItem key={item.id} listing={item} />
+                ))}
               </div>
             </div>
           )}
@@ -242,28 +381,62 @@ export default function DesktopMyListings() {
         </div>
       )}
 
-      {/* Modal potwierdzenia zakończenia */}
-      {showCompleteConfirm && (
+      {/* Modal potwierdzenia zakończenia z wyborem użytkownika */}
+      {showCompleteConfirm && selectedListingForComplete && (
         <div className="fixed inset-0 bg-[rgba(42,45,53,0.9)] backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gradient-to-br from-[rgba(60,65,75,0.95)] to-[rgba(50,55,65,0.95)] border border-[#7dd3c0]/30 rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl">
-            <h2 className="text-xl font-medium text-[#f5f3ed] mb-4">Oznacz jako zakończone?</h2>
-            <p className="text-sm text-[#b8b5ad] mb-6">
-              Po oznaczeniu ogłoszenia jako zakończonego, przyznasz punkty społecznościowe osobie, która pomogła.
-              <br /><br />
-              <span className="text-[#7dd3c0]">W przyszłości: tutaj wybierzesz osobę, z którą dokonano wymiany.</span>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-medium text-[#f5f3ed]">Zakończ ogłoszenie</h2>
+              <button 
+                onClick={() => {
+                  setShowCompleteConfirm(false);
+                  setSelectedListingForComplete(null);
+                  setApplicationsForListing([]);
+                }}
+                className="w-8 h-8 rounded-full bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 flex items-center justify-center hover:border-[#7dd3c0]/40"
+              >
+                <X className="w-4 h-4 text-[#7dd3c0]" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-[#b8b5ad] mb-4">
+              Wybierz użytkownika, który pomógł przy tym ogłoszeniu.
+              {selectedListingForComplete.suggestedPoints && (
+                <span className="block mt-2 text-[#7dd3c0]">
+                  🎯 Punkty do przyznania: {selectedListingForComplete.suggestedPoints}
+                </span>
+              )}
             </p>
-            <div className="flex gap-3">
+
+            {applicationsForListing.length === 0 ? (
+              <div className="text-center py-6">
+                <p className="text-[#b8b5ad] mb-3">Brak zgłoszonych użytkowników</p>
+                <p className="text-xs text-[#b8b5ad]">
+                  Użytkownicy muszą zgłosić się przez czat, aby mogli zostać wybrani.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-80 overflow-y-auto mb-4">
+                {applicationsForListing.map((app) => (
+                  <ApplicationItem 
+                    key={app.userId} 
+                    application={app} 
+                    onComplete={handleCompleteWithUser} 
+                  />
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-3 mt-2">
               <button
-                onClick={() => setShowCompleteConfirm(null)}
+                onClick={() => {
+                  setShowCompleteConfirm(false);
+                  setSelectedListingForComplete(null);
+                  setApplicationsForListing([]);
+                }}
                 className="flex-1 px-4 py-3 rounded-xl backdrop-blur-md bg-[rgba(60,65,75,0.5)] border border-[#7dd3c0]/20 text-[#f5f3ed] hover:border-[#7dd3c0]/40 transition-all duration-300"
               >
                 Anuluj
-              </button>
-              <button
-                onClick={() => handleComplete(showCompleteConfirm)}
-                className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium hover:shadow-xl transition-all duration-300"
-              >
-                Potwierdź
               </button>
             </div>
           </div>

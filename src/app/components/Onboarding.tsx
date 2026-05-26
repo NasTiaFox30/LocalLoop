@@ -1,12 +1,30 @@
 import { useNavigate } from 'react-router-dom';
-import { Leaf, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
-import { onboardingData } from '../../data/appData';
+import { LogoOnly } from './Logo';
+import { useTheme } from '../../contexts/ThemeContext';
+
+// Przenieś dane onboardingowe tutaj lub zaimportuj z firebaseData
+const onboardingData = {
+  tagline: 'Buduj lokalną społeczność, dziel się zasobami, redukuj ślad węglowy.',
+  stats: [
+    { label: 'Wymień', value: '150+' },
+    { label: 'Oszczędź', value: '85%' },
+    { label: 'Połącz', value: '100+' },
+  ],
+};
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const { darkMode } = useTheme();
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#2a2d35] via-[#25292f] to-[#2a2d35] text-[#f5f3ed] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className={`min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden transition-colors duration-300 ${
+      darkMode
+        ? 'bg-gradient-to-b from-[#2a2d35] via-[#25292f] to-[#2a2d35] text-[#f5f3ed]'
+        : 'bg-gradient-to-b from-[#ede9e0] via-[#e8e4db] to-[#ede9e0] text-[#1e2026]'
+    }`}>
+      {/* Decorative blobs */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-20 left-10 w-64 h-64 bg-[#7dd3c0]/10 rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-10 w-80 h-80 bg-[#89cff0]/10 rounded-full blur-3xl" />
@@ -19,9 +37,7 @@ export default function Onboarding() {
           className="relative mb-12"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] rounded-full blur-2xl opacity-40 animate-pulse" />
-          <div className="relative w-32 h-32 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-2xl shadow-[#7dd3c0]/30">
-            <Leaf className="w-16 h-16 text-[#1e2026]" strokeWidth={2.5} />
-          </div>
+          <LogoOnly classes="relative w-32 h-32" />
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
@@ -40,7 +56,9 @@ export default function Onboarding() {
           <h1 className="text-4xl font-medium mb-4 bg-gradient-to-r from-[#7dd3c0] via-[#a8d5ba] to-[#89cff0] bg-clip-text text-transparent">
             LocalLoop
           </h1>
-          <p className="text-lg text-[#f5f3ed] leading-relaxed px-4">
+          <p className={`text-lg leading-relaxed px-4 transition-colors duration-300 ${
+            darkMode ? 'text-[#f5f3ed]' : 'text-[#3a3d45]'
+          }`}>
             {onboardingData.tagline}
           </p>
         </motion.div>
@@ -61,7 +79,11 @@ export default function Onboarding() {
 
           <div className="flex items-center gap-4 py-4">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#7dd3c0]/30 to-transparent" />
-            <span className="text-xs text-[#b8b5ad]">Twoja społeczność czeka</span>
+            <span className={`text-xs transition-colors duration-300 ${
+              darkMode ? 'text-[#b8b5ad]' : 'text-[#7a7872]'
+            }`}>
+              Twoja społeczność czeka
+            </span>
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#7dd3c0]/30 to-transparent" />
           </div>
 
@@ -71,7 +93,11 @@ export default function Onboarding() {
                 <div className="text-2xl font-medium bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] bg-clip-text text-transparent">
                   {stat.value}
                 </div>
-                <div className="text-xs text-[#b8b5ad] mt-1">{stat.label}</div>
+                <div className={`text-xs mt-1 transition-colors duration-300 ${
+                  darkMode ? 'text-[#b8b5ad]' : 'text-[#7a7872]'
+                }`}>
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>

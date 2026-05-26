@@ -1,9 +1,7 @@
-// DesktopRequestHelp.tsx - pełna implementacja z wyszukiwaniem, filtrowaniem i sortowaniem
-
 import { useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
-import { favorCategories, getRequests, getUserById, timeAgo } from '../../data/appData';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus, ArrowUpDown, X } from 'lucide-react';
+import { favorCategories, getRequests, getUserById, timeAgo, type Listing, type User } from '../../data/firebaseData';
 
 const iconMap: Record<string, React.ElementType> = {
   Wrench, Car, BookOpen, Home, Heart, Utensils,
@@ -18,11 +16,36 @@ type SortOption = 'newest' | 'oldest';
 export default function DesktopRequestHelp({ onOpenDetail }: DesktopRequestHelpProps) {
   const navigate = useNavigate();
   const categories = favorCategories;
-  const allRequests = getRequests();
+  const [allRequests, setAllRequests] = useState<Listing[]>([]);
+  const [ownersCache, setOwnersCache] = useState<Map<string, User>>(new Map());
+  const [loading, setLoading] = useState(true);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+
+  useEffect(() => {
+    const loadRequests = async () => {
+      setLoading(true);
+      try {
+        const requests = await getRequests();
+        setAllRequests(requests);
+        
+        const ownerIds = [...new Set(requests.map(r => r.ownerId))];
+        const owners = await Promise.all(ownerIds.map(id => getUserById(id)));
+        const cache = new Map<string, User>();
+        owners.forEach(owner => {
+          if (owner) cache.set(owner.id, owner);
+        });
+        setOwnersCache(cache);
+      } catch (error) {
+        console.error('Failed to load requests:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadRequests();
+  }, []);
 
   const filteredAndSortedRequests = useMemo(() => {
     let filtered = [...allRequests];
@@ -41,8 +64,8 @@ export default function DesktopRequestHelp({ onOpenDetail }: DesktopRequestHelpP
     }
 
     filtered.sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
+      const dateA = a.createdAt?.toDate?.()?.getTime() || new Date(a.createdAt as any).getTime();
+      const dateB = b.createdAt?.toDate?.()?.getTime() || new Date(b.createdAt as any).getTime();
       return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
@@ -68,6 +91,18 @@ export default function DesktopRequestHelp({ onOpenDetail }: DesktopRequestHelpP
   };
 
   const hasActiveFilters = searchQuery.trim() !== '' || selectedCategory !== null;
+
+  const getOwner = (ownerId: string): User | null => {
+    return ownersCache.get(ownerId) || null;
+  };
+
+  if (loading) {
+    return (
+      <div className="hidden lg:block min-h-screen bg-[#2a2d35] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
@@ -122,14 +157,6 @@ export default function DesktopRequestHelp({ onOpenDetail }: DesktopRequestHelpP
 
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {selectedCategory && (
-              <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-[#7dd3c0]/20 to-[#a8d5ba]/10 border border-[#7dd3c0]/30 text-sm text-[#7dd3c0] flex items-center gap-2">
-                Kategoria: {selectedCategory}
-                <button onClick={() => setSelectedCategory(null)} className="hover:text-[#a8d5ba]">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
             {searchQuery && (
               <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-[#89cff0]/20 to-[#7dd3c0]/10 border border-[#89cff0]/30 text-sm text-[#89cff0] flex items-center gap-2">
                 Szukaj: "{searchQuery}"
@@ -205,8 +232,9 @@ export default function DesktopRequestHelp({ onOpenDetail }: DesktopRequestHelpP
               ) : (
                 <div className="grid grid-cols-2 gap-3 max-h-[600px] overflow-y-auto pr-2">
                   {filteredAndSortedRequests.map((item) => {
-                    const owner = getUserById(item.ownerId);
+                    const owner = getOwner(item.ownerId);
                     if (!owner) return null;
+                    const createdAt = item.createdAt?.toDate?.() || new Date(item.createdAt as any);
                     return (
                       <button
                         key={item.id}
@@ -214,12 +242,26 @@ export default function DesktopRequestHelp({ onOpenDetail }: DesktopRequestHelpP
                         className="w-full backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-xl p-4 hover:border-[#7dd3c0]/25 hover:scale-[1.02] transition-all duration-300 group text-left"
                       >
                         <div className="flex items-start gap-3">
-                          <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center flex-shrink-0 shadow-md group-hover:scale-110 transition-transform duration-300`}>
-                            <span className="text-sm font-medium text-[#1e2026]">{owner.initials}</span>
+                          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 shadow-md">
+                            {owner.avatarUrl ? (
+                              <img 
+                                src={owner.avatarUrl} 
+                                alt={owner.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.parentElement!.innerHTML = `<div class="w-full h-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center"><span class="text-sm font-medium text-[#1e2026]">${owner.initials}</span></div>`;
+                                }}
+                              />
+                            ) : (
+                              <div className={`w-full h-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center`}>
+                                <span className="text-sm font-medium text-[#1e2026]">{owner.initials}</span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-[#f5f3ed] mb-1 truncate">{item.title}</p>
-                            <p className="text-xs text-[#b8b5ad]">{owner.name} • {timeAgo(item.createdAt)}</p>
+                            <p className="text-xs text-[#b8b5ad]">{owner.name} • {timeAgo(createdAt)}</p>
                             <div className="mt-2">
                               <span className="px-2 py-1 rounded-full bg-gradient-to-r from-[#7dd3c0]/20 to-[#a8d5ba]/10 border border-[#7dd3c0]/30 text-xs text-[#7dd3c0]">
                                 {item.category}

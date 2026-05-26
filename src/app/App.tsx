@@ -1,5 +1,8 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getCurrentUser, onAuthChange, type User } from '../data/firebaseData';
+import { PointsProvider, usePoints, setPointsNotificationCallback } from '../contexts/PointsContext';
+import { PointsNotification } from './components/PointsNotification';
 
 // Layouts
 import DesktopSidebar from './components/DesktopSidebar';
@@ -30,6 +33,7 @@ import DesktopCreateFavorRequest from './components/DesktopCreateFavorRequest';
 import CreateFavorRequest from './components/CreateFavorRequest';
 import CreateHelpRequest from './components/CreateHelpRequest';
 import { ConversationsProvider} from '../contexts/ConversationsContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 // Routes that show the main app chrome (sidebar + bottom nav)
 const APP_ROUTES = [
@@ -60,17 +64,62 @@ function AdaptivePage({
   );
 }
 
+// Logika powiadomień
+function PointsNotificationManager() {
+  const { showPointsEarned } = usePoints();
+  
+  useEffect(() => {
+    // Ustaw callback zarówno w PointsContext jak i globalnie w firebaseData
+    setPointsNotificationCallback(showPointsEarned);
+    return () => setPointsNotificationCallback(null);
+  }, [showPointsEarned]);
+  
+  return null;
+}
+
+
+// Wyświetlanie powiadomień
+function PointsNotificationContainer() {
+  const { notifications, removeNotification } = usePoints();
+  return <PointsNotification notifications={notifications} onRemove={removeNotification} />;
+}
+
 export default function App() {
   const location = useLocation();
+  const [currentUser, setCurrentUser] = useState<User | null>(getCurrentUser());
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const isAuthScreen =
-    location.pathname === '/' ||
-    location.pathname === '/onboarding' ||
-    location.pathname === '/auth';
+  useEffect(() => {
+    // Nasłuchuj zmian autoryzacji
+    const unsubscribe = onAuthChange((user) => {
+      setCurrentUser(user);
+      setLoading(false);
+    });
 
+    return () => unsubscribe();
+  }, []);
+
+  const isAuthScreen = location.pathname === '/' || location.pathname === '/onboarding' || location.pathname === '/auth';
   const isAppRoute = APP_ROUTES.some((r) => location.pathname.startsWith(r));
+  const isUserLoggedIn = currentUser !== null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#2a2d35] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthScreen && !isUserLoggedIn) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if ((location.pathname === '/auth' || location.pathname === '/onboarding') && isUserLoggedIn) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleOpenDetail = (item: any) => {
     setSelectedItem(item);
@@ -82,136 +131,142 @@ export default function App() {
   };
 
   return (
+    <ThemeProvider>
     <ConversationsProvider>
-    <div className="size-full min-h-screen bg-[#2a2d35]">
-      {/* Desktop sidebar – only visible on app routes */}
-      {isAppRoute && <DesktopSidebar />}
+      <PointsProvider>
+        <PointsNotificationManager />
+        <div className="size-full min-h-screen bg-[#2a2d35]">
+          {/* Desktop sidebar – only visible on app routes */}
+          {isAppRoute && <DesktopSidebar />}
 
-      {/* Main content area – offset from sidebar on desktop */}
-      <div className={isAppRoute ? 'lg:pl-72' : ''}>
-        <Routes>
-          {/* ── Public routes ── */}
-          <Route path="/" element={<Navigate to="/onboarding" replace />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/auth" element={<Auth />} />
+          {/* Main content area – offset from sidebar on desktop */}
+          <div className={isAppRoute ? 'lg:pl-72' : ''}>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Navigate to="/onboarding" replace />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/auth" element={<Auth />} />
 
-          {/* ── App routes ── */}
-          <Route
-            path="/dashboard"
-            element={
-              <AdaptivePage
-                mobile={<Dashboard />}
-                desktop={<DesktopDashboard onOpenDetail={handleOpenDetail} />}
+              {/* App routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <AdaptivePage
+                    mobile={<Dashboard />}
+                    desktop={<DesktopDashboard onOpenDetail={handleOpenDetail} />}
+                  />
+                }
               />
-            }
-          />
-          <Route
-            path="/request-favor"
-            element={
-              <AdaptivePage
-                mobile={<RequestFavor />}
-                desktop={<DesktopRequestFavor onOpenDetail={handleOpenDetail} />}
+              <Route
+                path="/request-favor"
+                element={
+                  <AdaptivePage
+                    mobile={<RequestFavor />}
+                    desktop={<DesktopRequestFavor onOpenDetail={handleOpenDetail} />}
+                  />
+                }
               />
-            }
-          />
-          <Route
-            path="/request-help"
-            element={
-              <AdaptivePage
-                mobile={<RequestHelp />}
-                desktop={<DesktopRequestHelp onOpenDetail={handleOpenDetail} />}
+              <Route
+                path="/request-help"
+                element={
+                  <AdaptivePage
+                    mobile={<RequestHelp />}
+                    desktop={<DesktopRequestHelp onOpenDetail={handleOpenDetail} />}
+                  />
+                }
               />
-            }
-          />
-          <Route
-            path="/create-help-request"
-            element={
-              <AdaptivePage
-                mobile={<CreateHelpRequest />}
-                desktop={<DesktopCreateHelpRequest />}
+              <Route
+                path="/create-help-request"
+                element={
+                  <AdaptivePage
+                    mobile={<CreateHelpRequest />}
+                    desktop={<DesktopCreateHelpRequest />}
+                  />
+                }
               />
-            }
-          />
-          <Route
-            path="/create-favor-request"
-            element={
-              <AdaptivePage
-                mobile={<CreateFavorRequest />}
-                desktop={<DesktopCreateFavorRequest />}
+              <Route
+                path="/create-favor-request"
+                element={
+                  <AdaptivePage
+                    mobile={<CreateFavorRequest />}
+                    desktop={<DesktopCreateFavorRequest />}
+                  />
+                }
               />
-            }
-          />
-          <Route
-            path="/messages"
-            element={
-              <AdaptivePage
-                mobile={<MessagesInbox />}
-                desktop={<DesktopMessages />}
+              <Route
+                path="/messages"
+                element={
+                  <AdaptivePage
+                    mobile={<MessagesInbox />}
+                    desktop={<DesktopMessages />}
+                  />
+                }
               />
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <AdaptivePage
-                mobile={<UserProfile />}
-                desktop={<DesktopUserProfile />}
+              <Route
+                path="/profile"
+                element={
+                  <AdaptivePage
+                    mobile={<UserProfile />}
+                    desktop={<DesktopUserProfile />}
+                  />
+                }
               />
-            }
-          />
-          <Route
-            path="/my-listings"
-            element={
-              <AdaptivePage
-                mobile={<MyListings />}
-                desktop={<DesktopMyListings/>}
+              <Route
+                path="/my-listings"
+                element={
+                  <AdaptivePage
+                    mobile={<MyListings />}
+                    desktop={<DesktopMyListings/>}
+                  />
+                }
               />
-            }
-          />
-          <Route
-            path="/edit-profile"
-            element={
-              <AdaptivePage
-                mobile={<EditProfile />}
-                desktop={<DesktopEditProfile />}
+              <Route
+                path="/edit-profile"
+                element={
+                  <AdaptivePage
+                    mobile={<EditProfile />}
+                    desktop={<DesktopEditProfile />}
+                  />
+                }
               />
-            }
-          />
-          <Route
-            path="/listing-detail"
-            element={<DetailDrawer />}
-          />
-          <Route 
-            path="/chat" 
-            element={<SmartChat />}
-          />
-          <Route 
-            path="/messages/chat" 
-            element={<SmartChat />}
-          />
+              <Route
+                path="/listing-detail"
+                element={<DetailDrawer />}
+              />
+              <Route 
+                path="/chat" 
+                element={<SmartChat />}
+              />
+              <Route 
+                path="/messages/chat" 
+                element={<SmartChat />}
+              />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/onboarding" replace />} />
-        </Routes>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/onboarding" replace />} />
+            </Routes>
 
-        {/* Mobile bottom nav – only on app routes, hidden on desktop */}
-        {isAppRoute && (
-          <div className="lg:hidden">
-            <MobileBottomNav />
+            {/* Mobile bottom nav – only on app routes, hidden on desktop */}
+            {isAppRoute && (
+              <div className="lg:hidden">
+                <MobileBottomNav />
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Detail drawer (desktop) */}
-      <DesktopDetailDrawer
-        isOpen={isDetailDrawerOpen}
-        onClose={handleCloseDetail}
-        onChat={() => {
-          setIsDetailDrawerOpen(false);
-        }}
-        item={selectedItem}
-      />
-    </div>
+          {/* Detail drawer (desktop) */}
+          <DesktopDetailDrawer
+            isOpen={isDetailDrawerOpen}
+            onClose={handleCloseDetail}
+            onChat={() => {
+              setIsDetailDrawerOpen(false);
+            }}
+            item={selectedItem}
+          />
+          <PointsNotificationContainer />
+        </div>
+      </PointsProvider>
     </ConversationsProvider>
+    </ThemeProvider>
   );
 }

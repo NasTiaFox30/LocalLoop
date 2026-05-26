@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
-import { ArrowLeft, Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus, ArrowUpDown, Clock, X } from 'lucide-react';
-import { favorCategories, getRequests, getUserById, timeAgo } from '../../data/appData';
+import { useState, useMemo, useEffect } from 'react';
+import { ArrowLeft, Search, Wrench, Car, BookOpen, Home, Heart, Utensils, Plus, ArrowUpDown, X } from 'lucide-react';
+import { favorCategories, getRequests, getUserById, timeAgo, type Listing, type User } from '../../data/firebaseData';
 import type { LucideIcon } from 'lucide-react';
 
 const iconMap: Record<string, LucideIcon> = {
@@ -16,9 +16,35 @@ export default function RequestHelp() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [showAllRequests, setShowAllRequests] = useState(false);
-  
-  const allRequests = getRequests();
+  const [allRequests, setAllRequests] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [ownersCache, setOwnersCache] = useState<Map<string, User>>(new Map());
+
   const INITIAL_DISPLAY_COUNT = 5;
+
+  useEffect(() => {
+    const loadRequests = async () => {
+      setLoading(true);
+      try {
+        const requests = await getRequests();
+        setAllRequests(requests);
+        
+        // Preload owner data
+        const ownerIds = [...new Set(requests.map(r => r.ownerId))];
+        const owners = await Promise.all(ownerIds.map(id => getUserById(id)));
+        const cache = new Map<string, User>();
+        owners.forEach(owner => {
+          if (owner) cache.set(owner.id, owner);
+        });
+        setOwnersCache(cache);
+      } catch (error) {
+        console.error('Failed to load requests:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadRequests();
+  }, []);
 
   const filteredAndSortedRequests = useMemo(() => {
     let filtered = [...allRequests];
@@ -37,8 +63,8 @@ export default function RequestHelp() {
     }
     
     filtered.sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
+      const dateA = a.createdAt?.toDate?.()?.getTime() || new Date(a.createdAt as any).getTime();
+      const dateB = b.createdAt?.toDate?.()?.getTime() || new Date(b.createdAt as any).getTime();
       return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
     });
     
@@ -56,14 +82,24 @@ export default function RequestHelp() {
     return counts;
   }, [allRequests]);
 
-  const sortLabel = sortBy === 'newest' ? 'Najnowsze' : 'Najstarsze';
-
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCategory(null);
   };
 
   const hasActiveFilters = searchQuery.trim() !== '' || selectedCategory !== null;
+
+  const getOwner = (ownerId: string): User | null => {
+    return ownersCache.get(ownerId) || null;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#2a2d35] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7dd3c0] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#2a2d35] text-[#f5f3ed] p-4 pb-24">
@@ -94,7 +130,6 @@ export default function RequestHelp() {
             className="w-full pl-12 pr-4 py-4 backdrop-blur-md bg-gradient-to-r from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/20 rounded-[1.5rem] text-[#f5f3ed] placeholder-[#b8b5ad] focus:outline-none focus:border-[#7dd3c0]/40 focus:shadow-xl focus:shadow-[#7dd3c0]/10 transition-all duration-300"
           />
         </div>
-        
 
         {/* Sort row */}
         <div className="flex items-center justify-between mb-4">
@@ -157,8 +192,9 @@ export default function RequestHelp() {
             </div>
           ) : (
             displayedRequests.map((item) => {
-              const owner = getUserById(item.ownerId);
+              const owner = getOwner(item.ownerId);
               if (!owner) return null;
+              const createdAt = item.createdAt?.toDate?.() || new Date(item.createdAt as any);
               return (
                 <button
                   key={item.id}
@@ -166,12 +202,26 @@ export default function RequestHelp() {
                   className="w-full backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-2xl p-4 hover:border-[#7dd3c0]/25 transition-all duration-300 group text-left"
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center flex-shrink-0 shadow-md`}>
-                      <span className="text-sm font-medium text-[#1e2026]">{owner.initials}</span>
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 shadow-md">
+                      {owner.avatarUrl ? (
+                        <img 
+                          src={owner.avatarUrl} 
+                          alt={owner.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.parentElement!.innerHTML = `<div class="w-full h-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center"><span class="text-sm font-medium text-[#1e2026]">${owner.initials}</span></div>`;
+                          }}
+                        />
+                      ) : (
+                        <div className={`w-full h-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center`}>
+                          <span className="text-sm font-medium text-[#1e2026]">{owner.initials}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[#f5f3ed] mb-1">{item.title}</p>
-                      <p className="text-xs text-[#b8b5ad]">{owner.name} • {timeAgo(item.createdAt)}</p>
+                      <p className="text-xs text-[#b8b5ad]">{owner.name} • {timeAgo(createdAt)}</p>
                       <div className="mt-1">
                         <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#7dd3c0]/20 to-[#a8d5ba]/10 border border-[#7dd3c0]/30 text-xs text-[#7dd3c0]">
                           {item.category}
