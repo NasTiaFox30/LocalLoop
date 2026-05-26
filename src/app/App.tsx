@@ -33,6 +33,7 @@ import DesktopCreateFavorRequest from './components/DesktopCreateFavorRequest';
 import CreateFavorRequest from './components/CreateFavorRequest';
 import CreateHelpRequest from './components/CreateHelpRequest';
 import { ConversationsProvider} from '../contexts/ConversationsContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 // Routes that show the main app chrome (sidebar + bottom nav)
 const APP_ROUTES = [
@@ -130,6 +131,7 @@ export default function App() {
   };
 
   return (
+    <ThemeProvider>
     <ConversationsProvider>
       <PointsProvider>
         <PointsNotificationManager />
@@ -265,5 +267,6 @@ export default function App() {
         </div>
       </PointsProvider>
     </ConversationsProvider>
+    </ThemeProvider>
   );
 }
