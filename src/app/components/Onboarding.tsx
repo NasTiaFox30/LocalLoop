@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { Leaf, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { LogoOnly } from './Logo';
 
 // Przenieś dane onboardingowe tutaj lub zaimportuj z firebaseData
 const onboardingData = {
@@ -28,9 +29,7 @@ export default function Onboarding() {
           className="relative mb-12"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] rounded-full blur-2xl opacity-40 animate-pulse" />
-          <div className="relative w-32 h-32 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-2xl shadow-[#7dd3c0]/30">
-            <Leaf className="w-16 h-16 text-[#1e2026]" strokeWidth={2.5} />
-          </div>
+          <LogoOnly classes="relative w-32 h-32" />
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}

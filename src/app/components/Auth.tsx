@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, Leaf, Users, LogIn, Loader2 } from 'lucide-react';
 import { signIn, signUp, getAllUsers, getCurrentUser, type User } from '../../data/firebaseData';
+import { Logo }  from './Logo';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -101,12 +102,7 @@ export default function Auth() {
           >
             <ArrowLeft className="w-5 h-5 text-[#7dd3c0]" />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-lg">
-              <Leaf className="w-5 h-5 text-[#1e2026]" />
-            </div>
-            <h1 className="font-medium text-[#f5f3ed]">LocalLoop</h1>
-          </div>
+          <Logo classes="p-0" /> 
         </header>
 
         <div className="flex-1 flex flex-col justify-center">

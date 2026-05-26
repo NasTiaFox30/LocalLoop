@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Logo } from './Logo';
 import { Package, Leaf, Activity, Heart, MessageCircle, Mail } from 'lucide-react';
 import { getCurrentUser, getCommunityStats, getActivityFeed, subscribeToActivityFeed, getUserById, type User, type CommunityStats, type ActivityItem } from '../../data/firebaseData';
 
@@ -86,15 +87,7 @@ export default function Dashboard(_props: DashboardProps) {
       <div className="max-w-md mx-auto">
         <header className="mb-6 pt-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-lg shadow-[#7dd3c0]/20">
-                <Leaf className="w-6 h-6 text-[#1e2026]" />
-              </div>
-              <div>
-                <h1 className="font-medium text-[#f5f3ed]">LocalLoop</h1>
-                <p className="text-sm text-[#b8b5ad]">Twoja Społeczność</p>
-              </div>
-            </div>
+            <Logo classes="p-2" />
             <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate('/messages')}
