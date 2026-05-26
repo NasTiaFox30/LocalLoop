@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Package, Leaf, Mail, User } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const mobileNavItems = [
   { icon: Home,    label: 'Home',        path: '/dashboard' },
@@ -12,9 +13,18 @@ const mobileNavItems = [
 export default function MobileBottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { darkMode } = useTheme();
+
+  const navBg = darkMode
+    ? 'bg-gradient-to-t from-[rgba(30,32,38,0.98)] to-[rgba(42,45,53,0.92)] border-[#7dd3c0]/15'
+    : 'bg-gradient-to-t from-[rgba(232,229,222,0.98)] to-[rgba(240,237,230,0.95)] border-[#4ab8a4]/20';
+
+  const inactiveIcon = darkMode ? 'text-[#b8b5ad]' : 'text-[#8a8880]';
+  const inactiveLabel = darkMode ? 'text-[#b8b5ad]' : 'text-[#8a8880]';
+  const activeLabel = darkMode ? 'text-[#7dd3c0]' : 'text-[#4ab8a4]';
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl bg-gradient-to-t from-[rgba(30,32,38,0.98)] to-[rgba(42,45,53,0.92)] border-t border-[#7dd3c0]/15 shadow-2xl">
+    <nav className={`fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t shadow-2xl transition-colors duration-300 ${navBg}`}>
       {/* Safe area for iOS */}
       <div className="flex items-center justify-around px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {mobileNavItems.map((item) => {
@@ -34,13 +44,13 @@ export default function MobileBottomNav() {
               >
                 <item.icon
                   className={`w-5 h-5 transition-colors duration-200 ${
-                    isActive ? 'text-[#1e2026]' : 'text-[#b8b5ad]'
+                    isActive ? 'text-[#1e2026]' : inactiveIcon
                   }`}
                 />
               </div>
               <span
                 className={`text-[10px] font-medium transition-colors duration-200 ${
-                  isActive ? 'text-[#7dd3c0]' : 'text-[#b8b5ad]'
+                  isActive ? activeLabel : inactiveLabel
                 }`}
               >
                 {item.label}

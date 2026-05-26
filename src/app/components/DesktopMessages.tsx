@@ -126,7 +126,7 @@ export default function DesktopMessages() {
     <div className="hidden lg:block min-h-screen bg-[#2a2d35] text-[#f5f3ed]">
       <div className="h-screen flex">
         {/* Sidebar */}
-        <div className="w-96 border-r border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(40,43,50,0.3)] flex flex-col">
+        <div className="w-96 border-r border-[#7dd3c0]/15 backdrop-blur-md flex flex-col">
           <div className="p-6 border-b border-[#7dd3c0]/15">
             <div className="flex items-center gap-3 mb-4">
               <button
@@ -194,7 +194,7 @@ export default function DesktopMessages() {
                       className={`w-full backdrop-blur-md border rounded-2xl p-4 transition-all duration-300 flex items-start gap-3 ${
                         isSelected
                           ? 'bg-gradient-to-r from-[rgba(125,211,192,0.2)] to-[rgba(168,213,186,0.1)] border-[#7dd3c0]/30 shadow-lg'
-                          : 'bg-[rgba(60,65,75,0.3)] border-[#7dd3c0]/10 hover:border-[#7dd3c0]/25 hover:scale-[1.02]'
+                          : 'bg-[rgba(40,43,50,0.4)] border-[#7dd3c0]/10 hover:border-[#7dd3c0]/25 hover:scale-[1.02]'
                       }`}
                     >
                       <div className="relative">

@@ -151,26 +151,22 @@ export default function DetailDrawer() {
 
           {/* Przycisk czatu */}
           {!isOwnListing && listing.status === 'active' && (
-            <div className="backdrop-blur-md bg-gradient-to-t from-[rgba(42,45,53,0.95)] to-[rgba(42,45,53,0.8)] border-t border-[#7dd3c0]/15">
-              <div className="max-w-md mx-auto">
-                <button
-                  onClick={() => navigate('/messages', { state: { listingId: listing.id, ownerId: owner.id, listingTitle: listing.title } })}
-                  className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center justify-center gap-2"
-                >
-                  <MessageSquare className="w-5 h-5" />
-                  Chatuj z {owner.name.split(' ')[0]}
-                </button>
-              </div>
+            <div className="max-w-md mx-auto">
+              <button
+                onClick={() => navigate('/messages', { state: { listingId: listing.id, ownerId: owner.id, listingTitle: listing.title } })}
+                className="w-full bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba] text-[#1e2026] font-medium py-4 rounded-2xl hover:shadow-2xl hover:shadow-[#7dd3c0]/30 transition-all duration-300 shadow-xl shadow-[#7dd3c0]/20 flex items-center justify-center gap-2"
+              >
+                <MessageSquare className="w-5 h-5" />
+                Chatuj z {owner.name.split(' ')[0]}
+              </button>
             </div>
           )}
 
           {/* Komunikat dla własnego ogłoszenia */}
           {isOwnListing && listing.status === 'active' && (
-            <div className="backdrop-blur-md bg-gradient-to-t from-[rgba(42,45,53,0.95)] to-[rgba(42,45,53,0.8)] border-t border-[#7dd3c0]/15">
-              <div className="max-w-md mx-auto">
-                <div className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.3)] border border-[#7dd3c0]/20 rounded-2xl py-4 px-6 text-center">
-                  <p className="text-sm text-[#b8b5ad]">~ To Twoje ogłoszenie ~</p>
-                </div>
+            <div className="max-w-md mx-auto">
+              <div className="w-full backdrop-blur-md bg-[rgba(60,65,75,0.3)] border border-[#7dd3c0]/20 rounded-2xl py-4 px-6 text-center">
+                <p className="text-sm text-[#b8b5ad]">~ To Twoje ogłoszenie ~</p>
               </div>
             </div>
           )}
