@@ -8,10 +8,11 @@ import {
   writeBatch, arrayUnion, arrayRemove, increment
 } from 'firebase/firestore';
 import { 
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, 
-  signOut, onAuthStateChanged, type User as FirebaseUser
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, updatePassword,
+  signOut, onAuthStateChanged, type User as FirebaseUser  
 } from 'firebase/auth';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 
 // ==================== TYPY ====================
 
