@@ -250,8 +250,22 @@ export default function DesktopSmartChat({ conversationId }: DesktopSmartChatPro
       {/* Header - bez zmian */}
       <div className="border-b border-[#7dd3c0]/15 backdrop-blur-md bg-[rgba(40,43,50,0.3)] p-6">
         <div className="flex items-center gap-3">
-          <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center shadow-lg`}>
-            <span className="text-lg font-medium text-[#1e2026]">{otherUser.initials}</span>
+          <div className="w-14 h-14 rounded-full overflow-hidden shadow-lg">
+            {otherUser.avatarUrl ? (
+              <img 
+                src={otherUser.avatarUrl} 
+                alt={otherUser.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = `<div class="w-full h-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center"><span class="text-lg font-medium text-[#1e2026]">${otherUser.initials}</span></div>`;
+                }}
+              />
+            ) : (
+              <div className={`w-full h-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center`}>
+                <span className="text-lg font-medium text-[#1e2026]">{otherUser.initials}</span>
+              </div>
+            )}
           </div>
           <div className="flex-1">
             <h2 className="font-medium text-lg text-[#f5f3ed]">{otherUser.name}</h2>

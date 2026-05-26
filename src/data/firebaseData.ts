@@ -104,6 +104,7 @@ export interface ActivityItem {
   userName: string;
   userInitials: string;
   userAvatarColor: string;
+  userAvatarUrl?: string;
   action: 'created_offer' | 'created_request' | 'completed_exchange';
   timestamp: Timestamp;
   likes: number;
@@ -522,8 +523,10 @@ export const completeListing = async (listingId: string, completedWithUserId: st
 
 export const addActivity = async (activity: Omit<ActivityItem, 'id' | 'timestamp' | 'likes'>): Promise<void> => {
   const activitiesRef = collection(db, 'activities');
+  const currentUser = getCurrentUser();
   await addDoc(activitiesRef, {
     ...activity,
+    userAvatarUrl: currentUser?.avatarUrl || null,
     timestamp: Timestamp.now(),
     likes: 0,
   });

@@ -76,8 +76,22 @@ export default function DetailDrawer() {
 
         <div className="flex-1 p-4">
           <div className="flex items-center gap-3 mb-6">
-            <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center shadow-lg`}>
-              <span className="text-lg font-medium text-[#1e2026]">{owner.initials}</span>
+            <div className="w-14 h-14 rounded-full overflow-hidden shadow-lg">
+              {owner.avatarUrl ? (
+                <img 
+                  src={owner.avatarUrl} 
+                  alt={owner.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.parentElement!.innerHTML = `<div class="w-full h-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center"><span class="text-xl font-medium text-[#1e2026]">${owner.initials}</span></div>`;
+                  }}
+                />
+              ) : (
+                <div className={`w-full h-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center`}>
+                  <span className="text-xl font-medium text-[#1e2026]">{owner.initials}</span>
+                </div>
+              )}
             </div>
             <div>
               <h2 className="font-medium text-[#f5f3ed]">{owner.name}</h2>

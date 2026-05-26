@@ -285,9 +285,23 @@ export default function SmartChat() {
             <p className="text-xs text-[#7dd3c0] mt-0.5">Dot. {listing.title}</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center shadow-lg border-2 border-[#7dd3c0]/30`}>
-              <span className="text-sm font-medium text-[#1e2026]">{otherUser.initials}</span>
-            </div>
+          <div className="w-12 h-12 rounded-full overflow-hidden shadow-lg border-2 border-[#7dd3c0]/30">
+            {otherUser.avatarUrl ? (
+              <img 
+                src={otherUser.avatarUrl} 
+                alt={otherUser.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = `<div class="w-full h-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center"><span class="text-sm font-medium text-[#1e2026]">${otherUser.initials}</span></div>`;
+                }}
+              />
+            ) : (
+              <div className={`w-full h-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center`}>
+                <span className="text-sm font-medium text-[#1e2026]">{otherUser.initials}</span>
+              </div>
+            )}
+          </div>
             {isOwner && listing.status === 'active' && (
               <button
                 onClick={() => setShowApplicationsPanel(!showApplicationsPanel)}

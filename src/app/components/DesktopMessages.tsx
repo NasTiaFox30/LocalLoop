@@ -198,8 +198,22 @@ export default function DesktopMessages() {
                       }`}
                     >
                       <div className="relative">
-                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center shadow-md flex-shrink-0`}>
-                          <span className="text-sm font-medium text-[#1e2026]">{otherUser.initials}</span>
+                        <div className="w-12 h-12 rounded-full overflow-hidden shadow-md flex-shrink-0">
+                          {otherUser.avatarUrl ? (
+                            <img 
+                              src={otherUser.avatarUrl} 
+                              alt={otherUser.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.parentElement!.innerHTML = `<div class="w-full h-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center"><span class="text-sm font-medium text-[#1e2026]">${otherUser.initials}</span></div>`;
+                              }}
+                            />
+                          ) : (
+                            <div className={`w-full h-full bg-gradient-to-br ${otherUser.avatarColor} flex items-center justify-center`}>
+                              <span className="text-sm font-medium text-[#1e2026]">{otherUser.initials}</span>
+                            </div>
+                          )}
                         </div>
                         {isUnread && (
                           <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] border-2 border-[#2a2d35] shadow-lg" />

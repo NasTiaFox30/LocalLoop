@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Leaf, Activity, Heart, MessageCircle, Mail, TrendingUp, Users, Sparkles } from 'lucide-react';
-import { getCurrentUser, getCommunityStats, getActivityFeed, subscribeToActivityFeed, type User, type CommunityStats, type ActivityItem } from '../../data/firebaseData';
+import { getCurrentUser, getCommunityStats, getActivityFeed, subscribeToActivityFeed, getUserById, type User, type CommunityStats, type ActivityItem } from '../../data/firebaseData';
 
 interface DesktopDashboardProps {
   onOpenDetail: (item: ActivityItem) => void;
@@ -14,6 +14,27 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
   const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([]);
   const [likedItems, setLikedItems] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userAvatars, setUserAvatars] = useState<Map<string, string>>(new Map());
+
+  // Funkcja do pobierania avatarów dla użytkowników w activity feed
+  const loadUserAvatars = async (activities: ActivityItem[]) => {
+    const newAvatars = new Map(userAvatars);
+    let needsUpdate = false;
+    
+    for (const activity of activities) {
+      if (!newAvatars.has(activity.userId) && activity.userId) {
+        const user = await getUserById(activity.userId);
+        if (user?.avatarUrl) {
+          newAvatars.set(activity.userId, user.avatarUrl);
+          needsUpdate = true;
+        }
+      }
+    }
+    
+    if (needsUpdate) {
+      setUserAvatars(newAvatars);
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -24,6 +45,7 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
         
         const feed = await getActivityFeed(10);
         setActivityFeed(feed);
+        await loadUserAvatars(feed);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
       } finally {
@@ -33,8 +55,9 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
     
     loadData();
     
-    const unsubscribe = subscribeToActivityFeed((activities) => {
+    const unsubscribe = subscribeToActivityFeed(async (activities) => {
       setActivityFeed(activities);
+      await loadUserAvatars(activities);
     }, 10);
     
     return () => unsubscribe();
@@ -61,16 +84,32 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
               <h1 className="text-2xl font-medium text-[#f5f3ed] mb-2">Witaj ponownie, {currentUser?.name?.split(' ')[0] || 'Gościu'}! 👋</h1>
               <p className="text-sm text-[#b8b5ad]">Odkryj, co nowego w Twojej społeczności</p>
             </div>
+            {/* Avatar profilu - zaktualizowany */}
             <button
               onClick={() => navigate('/profile')}
-              className="w-14 h-14 rounded-full bg-gradient-to-br from-[#89cff0]/20 to-[#7dd3c0]/20 border-2 border-[#7dd3c0]/30 flex items-center justify-center backdrop-blur-sm hover:border-[#7dd3c0]/50 hover:scale-105 transition-all duration-300 shadow-lg"
+              className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#89cff0]/20 to-[#7dd3c0]/20 border-2 border-[#7dd3c0]/30 flex items-center justify-center backdrop-blur-sm hover:border-[#7dd3c0]/50 hover:scale-105 transition-all duration-300 shadow-lg"
             >
-              <span className="text-lg font-medium text-[#7dd3c0]">{currentUser?.initials || '?'}</span>
+              {currentUser?.avatarUrl ? (
+                <img 
+                  src={currentUser.avatarUrl} 
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.innerHTML = `<span class="text-lg font-medium text-[#7dd3c0]">${currentUser?.initials || '?'}</span>`;
+                    }
+                  }}
+                />
+              ) : (
+                <span className="text-lg font-medium text-[#7dd3c0]">{currentUser?.initials || '?'}</span>
+              )}
             </button>
           </div>
         </header>
-
-        {/* Quick action cards - bez zmian w JSX */}
+        {/* Quick action cards */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <button
             onClick={() => navigate('/request-help')}
@@ -132,37 +171,59 @@ export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps
               {activityFeed.length === 0 ? (
                 <p className="text-center text-[#b8b5ad] py-8">Brak aktywności</p>
               ) : (
-                activityFeed.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => onOpenDetail(item)}
-                    className="flex items-start gap-4 p-4 rounded-2xl backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 hover:border-[#7dd3c0]/30 hover:scale-[1.01] transition-all duration-300 group cursor-pointer shadow-lg hover:shadow-xl hover:shadow-[#7dd3c0]/10"
-                  >
-                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${item.userAvatarColor} flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                      <span className="text-base font-medium text-[#1e2026]">{item.userInitials}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-base text-[#f5f3ed]">
-                        <span className="font-medium text-[#7dd3c0]">{item.userName}</span>{' '}
-                        {item.action === 'created_offer' && `udostępnia: ${item.listingTitle}`}
-                        {item.action === 'created_request' && `prosi o pomoc: ${item.listingTitle}`}
-                        {item.action === 'completed_exchange' && 'zakończył/a udaną wymianę'}
-                      </p>
-                      <div className="flex gap-4 mt-3">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }}
-                          className={`flex items-center gap-2 text-sm transition-all duration-300 hover:scale-110 ${likedItems.includes(item.id) ? 'text-[#7dd3c0]' : 'text-[#b8b5ad] hover:text-[#7dd3c0]'}`}
-                        >
-                          <Heart className={`w-4 h-4 transition-all duration-300 ${likedItems.includes(item.id) ? 'fill-[#7dd3c0]' : ''}`} />
-                          <span>{item.likes + (likedItems.includes(item.id) ? 1 : 0)}</span>
-                        </button>
-                        <button className="flex items-center gap-2 text-sm text-[#b8b5ad] hover:text-[#7dd3c0] hover:scale-110 transition-all duration-300">
-                          <MessageCircle className="w-4 h-4" />
-                        </button>
+                activityFeed.map((item) => {
+                  const avatarUrl = userAvatars.get(item.userId) || item.userAvatarUrl;
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => onOpenDetail(item)}
+                      className="flex items-start gap-4 p-4 rounded-2xl backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 hover:border-[#7dd3c0]/30 hover:scale-[1.01] transition-all duration-300 group cursor-pointer shadow-lg hover:shadow-xl hover:shadow-[#7dd3c0]/10"
+                    >
+                      {/* Avatar - z obsługą zdjęcia */}
+                      <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        {avatarUrl ? (
+                          <img 
+                            src={avatarUrl} 
+                            alt={item.userName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.currentTarget as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = `<div class="w-full h-full bg-gradient-to-br ${item.userAvatarColor} flex items-center justify-center"><span class="text-base font-medium text-[#1e2026]">${item.userInitials}</span></div>`;
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className={`w-full h-full bg-gradient-to-br ${item.userAvatarColor} flex items-center justify-center`}>
+                            <span className="text-base font-medium text-[#1e2026]">{item.userInitials}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base text-[#f5f3ed]">
+                          <span className="font-medium text-[#7dd3c0]">{item.userName}</span>{' '}
+                          {item.action === 'created_offer' && `udostępnia: ${item.listingTitle}`}
+                          {item.action === 'created_request' && `prosi o pomoc: ${item.listingTitle}`}
+                          {item.action === 'completed_exchange' && 'zakończył/a udaną wymianę'}
+                        </p>
+                        <div className="flex gap-4 mt-3">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }}
+                            className={`flex items-center gap-2 text-sm transition-all duration-300 hover:scale-110 ${likedItems.includes(item.id) ? 'text-[#7dd3c0]' : 'text-[#b8b5ad] hover:text-[#7dd3c0]'}`}
+                          >
+                            <Heart className={`w-4 h-4 transition-all duration-300 ${likedItems.includes(item.id) ? 'fill-[#7dd3c0]' : ''}`} />
+                            <span>{item.likes + (likedItems.includes(item.id) ? 1 : 0)}</span>
+                          </button>
+                          <button className="flex items-center gap-2 text-sm text-[#b8b5ad] hover:text-[#7dd3c0] hover:scale-110 transition-all duration-300">
+                            <MessageCircle className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

@@ -202,8 +202,22 @@ export default function RequestHelp() {
                   className="w-full backdrop-blur-sm bg-[rgba(40,43,50,0.4)] border border-[#7dd3c0]/10 rounded-2xl p-4 hover:border-[#7dd3c0]/25 transition-all duration-300 group text-left"
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center flex-shrink-0 shadow-md`}>
-                      <span className="text-sm font-medium text-[#1e2026]">{owner.initials}</span>
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 shadow-md">
+                      {owner.avatarUrl ? (
+                        <img 
+                          src={owner.avatarUrl} 
+                          alt={owner.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.parentElement!.innerHTML = `<div class="w-full h-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center"><span class="text-sm font-medium text-[#1e2026]">${owner.initials}</span></div>`;
+                          }}
+                        />
+                      ) : (
+                        <div className={`w-full h-full bg-gradient-to-br ${owner.avatarColor} flex items-center justify-center`}>
+                          <span className="text-sm font-medium text-[#1e2026]">{owner.initials}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[#f5f3ed] mb-1">{item.title}</p>
