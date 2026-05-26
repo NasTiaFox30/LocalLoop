@@ -61,10 +61,17 @@ export default function UserProfile() {
 
         <div className="flex flex-col items-center mb-8">
           <div className="relative mb-4">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-2xl shadow-[#7dd3c0]/30 border-4 border-[#2a2d35]">
-              <span className="text-3xl font-medium text-[#1e2026]">{currentUser.initials}</span>
+            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-2xl shadow-[#7dd3c0]/30 border-4 border-[#2a2d35] overflow-hidden">
+              {currentUser.avatarUrl ? (
+                <img src={currentUser.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl font-medium text-[#1e2026]">{currentUser.initials}</span>
+              )}
             </div>
-            <button onClick={() => navigate('/edit-profile')} className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] flex items-center justify-center shadow-lg border-2 border-[#2a2d35] hover:scale-110 transition-transform duration-300">
+            <button 
+              onClick={() => navigate('/edit-profile')}
+              className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] flex items-center justify-center shadow-lg border-2 border-[#2a2d35] hover:scale-110 transition-transform duration-300"
+            >
               <Edit className="w-4 h-4 text-[#1e2026]" />
             </button>
           </div>

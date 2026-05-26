@@ -48,10 +48,17 @@ export default function DesktopUserProfile() {
             <div className="backdrop-blur-md bg-gradient-to-br from-[rgba(60,65,75,0.5)] to-[rgba(50,55,65,0.3)] border border-[#7dd3c0]/15 rounded-3xl p-6 shadow-xl">
               <div className="flex items-start gap-6 mb-6">
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-2xl shadow-[#7dd3c0]/30 border-4 border-[#2a2d35]">
-                    <span className="text-3xl font-medium text-[#1e2026]">{currentUser.initials}</span>
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] flex items-center justify-center shadow-2xl shadow-[#7dd3c0]/30 border-4 border-[#2a2d35] overflow-hidden">
+                    {currentUser.avatarUrl ? (
+                      <img src={currentUser.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl font-medium text-[#1e2026]">{currentUser.initials}</span>
+                    )}
                   </div>
-                  <button className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] flex items-center justify-center shadow-lg border-2 border-[#2a2d35] hover:scale-110 transition-transform duration-300">
+                  <button 
+                    onClick={() => navigate('/edit-profile')}
+                    className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#89cff0] to-[#7dd3c0] flex items-center justify-center shadow-lg border-2 border-[#2a2d35] hover:scale-110 transition-transform duration-300"
+                  >
                     <Edit className="w-4 h-4 text-[#1e2026]" />
                   </button>
                 </div>
