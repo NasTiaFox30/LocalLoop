@@ -12,11 +12,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { signOutUser, getCurrentUser, type User } from '../../data/firebaseData';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function UserProfile() {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<User | null>(getCurrentUser());
-  const [darkMode, setDarkMode] = useState(true);
+  const { darkMode, toggleTheme } = useTheme();
   const [notificationMode, setNotificationMode] = useState<'all' | 'important' | 'disabled'>('all');
 
   // Odświeżanie użytkownika
@@ -86,9 +87,9 @@ export default function UserProfile() {
               <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#7dd3c0]/20 to-[#89cff0]/10 flex items-center justify-center">
                 {darkMode ? <Moon className="w-5 h-5 text-[#7dd3c0]" /> : <Sun className="w-5 h-5 text-[#7dd3c0]" />}
               </div>
-              <span className="flex-1 text-left text-sm font-medium text-[#f5f3ed]">Tryb ciemny</span>
+              <span className="flex-1 text-left text-sm font-medium text-[#f5f3ed]">{darkMode ? 'Tryb ciemny' : 'Tryb jasny'}</span>
               <button
-                onClick={() => setDarkMode(!darkMode)}
+                onClick={() => toggleTheme()}
                 className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
                   darkMode ? "bg-gradient-to-r from-[#7dd3c0] to-[#a8d5ba]" : "bg-[rgba(80,85,95,0.5)]"
                 }`}
