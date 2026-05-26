@@ -774,6 +774,107 @@ export const getCommunityStats = async (): Promise<CommunityStats> => {
   };
 };
 
+// ==================== PROFILE ====================
+
+
+// Upload zdjęcia profilowego do Firebase Storage
+export const uploadProfileImage = async (userId: string, file: File): Promise<string> => {
+  const storageRef = ref(storage, `profile-images/${userId}`);
+  await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(storageRef);
+  return downloadURL;
+};
+
+// Aktualizacja profilu użytkownika
+export const updateUserProfile = async (
+  userId: string, 
+  updates: Partial<Pick<User, 'name' | 'bio' | 'neighborhood' | 'avatarUrl'>>
+): Promise<void> => {
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, {
+    ...updates,
+    updatedAt: Timestamp.now(),
+  });
+  
+  // Jeśli zmieniono name, zaktualizuj też inicjały
+  if (updates.name) {
+    const newInitials = updates.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    await updateDoc(userRef, { initials: newInitials });
+  }
+  
+  // Aktualizuj currentUser w pamięci
+  const updatedUser = await getUserById(userId);
+  if (updatedUser && currentFirebaseUser?.id === userId) {
+    notifyAuthChange(updatedUser);
+  }
+};
+
+// Zmiana hasła użytkownika
+export const changeUserPassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+  const user = auth.currentUser;
+  if (!user || !user.email) throw new Error('No user logged in');
+  
+  if (newPassword.length < 6) {
+    throw new Error('Hasło musi mieć co najmniej 6 znaków');
+  }
+  
+  // Re-autoryzacja z obecnym hasłem
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  await reauthenticateWithCredential(user, credential);
+  
+  // Zmiana hasła
+  await updatePassword(user, newPassword);
+};
+
+// Usunięcie konta użytkownika
+export const deleteUserAccount = async (password: string): Promise<void> => {
+  const user = auth.currentUser;
+  if (!user || !user.email) throw new Error('No user logged in');
+  
+  // Re-autoryzacja przed usunięciem - POPRAWNA WERSJA
+  const credential = EmailAuthProvider.credential(user.email, password);
+  await reauthenticateWithCredential(user, credential);
+  
+  // Reszta kodu bez zmian...
+  const userId = user.uid;
+  
+  // 1. Usuń wszystkie ogłoszenia użytkownika
+  const listings = await getListingsByUser(userId);
+  for (const listing of listings) {
+    await deleteDoc(doc(db, 'listings', listing.id));
+  }
+  
+  // 2. Usuń wszystkie konwersacje użytkownika
+  const conversations = await getUserConversations(userId);
+  for (const conv of conversations) {
+    await deleteConversation(conv.id);
+  }
+  
+  // 3. Usuń wszystkie aktywności użytkownika
+  const activitiesRef = collection(db, 'activities');
+  const q = query(activitiesRef, where('userId', '==', userId));
+  const activitiesSnap = await getDocs(q);
+  for (const doc of activitiesSnap.docs) {
+    await deleteDoc(doc.ref);
+  }
+  
+  // 4. Usuń dokument użytkownika
+  await deleteDoc(doc(db, 'users', userId));
+  
+  // 5. Usuń zdjęcie profilowe ze storage jeśli istnieje
+  try {
+    const profileImageRef = ref(storage, `profile-images/${userId}`);
+    await deleteObject(profileImageRef);
+  } catch (error) {
+    // Ignoruj jeśli nie istnieje
+  }
+  
+  // 6. Usuń konto z Auth
+  await user.delete();
+  
+  notifyAuthChange(null);
+};
+
 // ==================== CATEGORIES (statyczne) ====================
 
 export const favorCategories = [
