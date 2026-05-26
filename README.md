@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/LocalLoop-4AB8A4?style=for-the-badge&logoColor=white" alt="LocalLoop"/>
-</p>
-
 <h1 align="center">LocalLoop</h1>
 <p align="center"><em>Platforma gospodarki obiegu zamkniętego dla lokalnych społeczności</em></p>
 
@@ -172,7 +168,7 @@ LocalLoop używa wewnętrznej waluty — **Community Points \ Impact Score** —
 | [Figma Make](https://figma.com) | Flow i prototypy — AI-Powered Design Tools |
 | [recraft.ai](https://recraft.ai) | Generowanie logo jako SVG Vector |
 | Notion | Notatki, planowanie, user stories, dokumentacja postępów |
-| Gemini 1.5 PRO | Dyskusje i strukturyzacja projektu (Discussion mode) |
+| Gemini 3 PRO | Dyskusje i strukturyzacja projektu (Discussion mode) |
 
 ### 💻 Frontend
 
@@ -190,7 +186,7 @@ LocalLoop używa wewnętrznej waluty — **Community Points \ Impact Score** —
 | Pakiet | Opis |
 |--------|------|
 | FastAPI | Python REST API — planowany backend do zaawansowanej logiki AI |
-| Anthropic Claude API | Aktualnie używane bezpośrednio — generowanie treści i fraz |
+| Anthropic LLM API | Aktualnie używane bezpośrednio — generowanie treści i fraz |
 
 ### 🗄️ Baza danych
 
