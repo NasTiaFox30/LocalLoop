@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
-import { setPointsNotificationCallback as setGlobalPointsNotificationCallback } from '../data/firebaseData'; // ⭐️ DODANE
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { setPointsNotificationCallback as setGlobalPointsNotificationCallback } from '../data/firebaseData';
 
 export interface PointsNotification {
   id: string;
@@ -16,15 +16,11 @@ interface PointsContextType {
   showPointsEarned: (points: number, action: string, target?: string) => void;
 }
 
-// Globalny callback dla powiadomień
-let pointsNotificationCallback: ((points: number, action: string, target?: string) => void) | null = null;
+const PointsContext = createContext<PointsContextType | undefined>(undefined);
 
 export const setPointsNotificationCallback = (callback: ((points: number, action: string, target?: string) => void) | null) => {
-  pointsNotificationCallback = callback;
   setGlobalPointsNotificationCallback(callback);
 };
-
-const PointsContext = createContext<PointsContextType | undefined>(undefined);
 
 export function PointsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<PointsNotification[]>([]);

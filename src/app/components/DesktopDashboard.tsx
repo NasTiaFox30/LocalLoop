@@ -9,7 +9,7 @@ interface DesktopDashboardProps {
 
 export default function DesktopDashboard({ onOpenDetail }: DesktopDashboardProps) {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<User | null>(getCurrentUser());
+  const [currentUser] = useState<User | null>(getCurrentUser());
   const [communityStats, setCommunityStats] = useState<CommunityStats>({ communityHealth: 0, totalExchanges: 0, impactScore: 0 });
   const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([]);
   const [likedItems, setLikedItems] = useState<string[]>([]);

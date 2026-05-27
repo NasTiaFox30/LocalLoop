@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { getListingById, getUserById, getCurrentUser, timeAgo, type Listing, type User } from '../../data/firebaseData';
+import { getListingById, getUserById, getCurrentUser, type Listing, type User } from '../../data/firebaseData';
 
 interface DesktopDetailDrawerProps {
   isOpen: boolean;
@@ -45,7 +45,6 @@ export default function DesktopDetailDrawer({ isOpen, onClose, onChat, item }: D
 
   const isOffer = listing.listingType === 'offer';
   const isOwnListing = owner.id === currentUser?.id;
-  const createdAt = listing.createdAt?.toDate?.() || new Date(listing.createdAt as any);
 
   return (
     <AnimatePresence>

@@ -28,7 +28,7 @@ export default function DesktopSmartChat({ conversationId }: DesktopSmartChatPro
   const [applications, setApplications] = useState<Application[]>([]);
   const [showApplicationsPanel, setShowApplicationsPanel] = useState(false);
   const [processingApp, setProcessingApp] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [currentUser] = useState(getCurrentUser());
   const [listing, setListing] = useState<Listing | null>(null);
   const [otherUser, setOtherUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);

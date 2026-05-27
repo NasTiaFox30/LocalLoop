@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Lock, Leaf, Users, LogIn, Loader2 } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Users, LogIn, Loader2 } from 'lucide-react';
 import { signIn, signUp, getAllUsers, getCurrentUser, type User } from '../../data/firebaseData';
 import { Logo }  from './Logo';
 
