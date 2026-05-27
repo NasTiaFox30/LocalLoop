@@ -1,13 +1,13 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Search, MoreVertical, Trash2 } from 'lucide-react';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getCurrentUser, getUserById, getListingById, timeAgo } from '../../data/firebaseData';
 import { useConversations } from '../../contexts/ConversationsContext';
 
 export default function MessagesInbox() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { getUserConversations, deleteConversation, addConversation, conversations } = useConversations();
+  const { getUserConversations, deleteConversation, addConversation } = useConversations();
   const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState(getCurrentUser());
   const [loading, setLoading] = useState(true);

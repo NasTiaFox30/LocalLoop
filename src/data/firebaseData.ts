@@ -9,7 +9,7 @@ import {
 } from 'firebase/firestore';
 import { 
   createUserWithEmailAndPassword, signInWithEmailAndPassword, updatePassword,
-  signOut, onAuthStateChanged, type User as FirebaseUser  
+  signOut, onAuthStateChanged
 } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';

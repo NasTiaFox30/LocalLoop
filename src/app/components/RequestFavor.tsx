@@ -93,12 +93,6 @@ export default function RequestFavor() {
     return ownersCache.get(ownerId) || null;
   };
 
-  // Konwersja Timestamp na string dla timeAgo
-  const getFormattedTime = (timestamp: any): string => {
-    const date = timestamp?.toDate?.() || new Date(timestamp);
-    return timeAgo(date);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#2a2d35] flex items-center justify-center">

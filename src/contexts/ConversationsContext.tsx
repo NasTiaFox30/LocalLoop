@@ -1,9 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { 
-  getCurrentUser, 
-  getUserConversations as fetchUserConversations,
+  getCurrentUser,
   subscribeToUserConversations,
-  getMessagesForConversation as fetchMessages,
   subscribeToMessages,
   addMessage as addMessageToFirebase,
   getOrCreateConversation,

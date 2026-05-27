@@ -1,7 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Package, Leaf, Mail, User, LogOut } from 'lucide-react';
-import { signOutUser, getCurrentUser } from '../../data/firebaseData';
-import { useEffect, useState } from 'react';
+import { signOutUser } from '../../data/firebaseData';
 import { Logo } from './Logo';
 
 const navItems = [
@@ -16,15 +15,6 @@ const navItems = [
 export default function DesktopSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [currentUser, setCurrentUser] = useState(getCurrentUser());
-
-  useEffect(() => {
-    // Możesz dodać nasłuchiwanie zmian użytkownika
-    const interval = setInterval(() => {
-      setCurrentUser(getCurrentUser());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleLogout = async () => {
     await signOutUser();

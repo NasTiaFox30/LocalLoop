@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Eye, Users, Trash2, CheckCircle, X, Plus, HandHelping, ListTodo, UserCheck } from 'lucide-react';
+import { ArrowLeft, Clock, Eye, Users, Trash2, CheckCircle, X, Plus, HandHelping, ListTodo } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { 
   getCurrentUser, 
@@ -122,7 +122,7 @@ export default function MyListings() {
   const [selectedListingForComplete, setSelectedListingForComplete] = useState<Listing | null>(null);
   const [applicationsForListing, setApplicationsForListing] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [currentUser] = useState(getCurrentUser());
 
   const refreshListings = async () => {
     if (!currentUser) return;
@@ -193,11 +193,6 @@ export default function MyListings() {
     } else {
       navigate('/create-help-request');
     }
-  };
-
-  const hasApplications = (): boolean => {
-    // To jest używane tylko do wyświetlania ikony - nie pobieramy tutaj aplikacji
-    return applicationsForListing.length > 0;
   };
 
   if (loading) {

@@ -115,7 +115,7 @@ export default function DesktopMyListings() {
   const [selectedListingForComplete, setSelectedListingForComplete] = useState<Listing | null>(null);
   const [applicationsForListing, setApplicationsForListing] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [currentUser] = useState(getCurrentUser());
 
   const refreshListings = async () => {
     if (!currentUser) return;
