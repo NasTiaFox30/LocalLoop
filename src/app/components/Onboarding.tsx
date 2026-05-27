@@ -6,12 +6,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 
 // Przenieś dane onboardingowe tutaj lub zaimportuj z firebaseData
 const onboardingData = {
-  tagline: 'Buduj lokalną społeczność, dziel się zasobami, redukuj ślad węglowy.',
-  stats: [
-    { label: 'Wymień', value: '150+' },
-    { label: 'Oszczędź', value: '85%' },
-    { label: 'Połącz', value: '100+' },
-  ],
+  tagline: 'Budujmy lokalną społeczność - dzielimy się zasobami, wymieniamy umiejętności, pomagamy nawzajem. Bez wymyślania opisów, bez problemów i bez stresu.',
 };
 
 export default function Onboarding() {
@@ -85,21 +80,6 @@ export default function Onboarding() {
               Twoja społeczność czeka
             </span>
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#7dd3c0]/30 to-transparent" />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 pt-4">
-            {onboardingData.stats.map((stat, idx) => (
-              <div key={idx} className="text-center">
-                <div className="text-2xl font-medium bg-gradient-to-br from-[#7dd3c0] to-[#a8d5ba] bg-clip-text text-transparent">
-                  {stat.value}
-                </div>
-                <div className={`text-xs mt-1 transition-colors duration-300 ${
-                  darkMode ? 'text-[#b8b5ad]' : 'text-[#7a7872]'
-                }`}>
-                  {stat.label}
-                </div>
-              </div>
-            ))}
           </div>
         </motion.div>
       </div>
